@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./store.js?v=8"></script>
+<script src="./support.js?v=8"></script>
+<script src="./nav.js?v=8" defer></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>* { box-sizing: border-box; } body { margin:0; }</style>
+</helmet>
+<div style="font-family:'Fredoka','Noto Sans TC',sans-serif; background:#FAF7F3; color:#2A2740; height:100vh; display:flex; overflow:hidden;">
+
+  <aside style="width:226px; flex:none; background:#2A2740; color:#fff; display:flex; flex-direction:column; padding:22px 16px;">
+    <div style="display:flex; align-items:center; gap:11px; padding:4px 8px 22px;">
+      <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6D54E8,#C25BD6);display:flex;align-items:center;justify-content:center;font-size:20px;">♪</div>
+      <div><div style="font-size:17px;font-weight:700;letter-spacing:.5px;">樂排</div><div style="font-size:11px;opacity:.55;">音樂班排課系統</div></div>
+    </div>
+    <div style="font-size:11px; opacity:.4; letter-spacing:1px; padding:6px 10px;">主選單</div>
+    <nav style="display:flex; flex-direction:column; gap:3px; margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📊<span>總覽 Dashboard</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎻<span>外聘老師</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎒<span>學生資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🚪<span>琴房資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;font-size:14px;font-weight:600;background:linear-gradient(135deg,#6D54E8,#9A4FE0);box-shadow:0 6px 16px rgba(109,84,232,.4);cursor:pointer;">📚<span>班級課表</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">⚙️<span>排課原則</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎼<span>排課工作台</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📈<span>報表中心</span></div>
+    </nav>
+    <div style="margin-top:auto; display:flex; align-items:center; gap:10px; padding:11px; background:rgba(255,255,255,.07); border-radius:14px;">
+      <div style="width:34px;height:34px;border-radius:50%;background:#9A4FE0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">王</div>
+      <div style="line-height:1.3;"><div style="font-size:13px;font-weight:600;">王主任</div><div style="font-size:11px;opacity:.55;">教務管理者</div></div>
+    </div>
+  </aside>
+
+  <main style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+    <header style="flex:none; padding:18px 28px; background:#fff; border-bottom:1px solid #EDE8F2; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div style="font-size:12px; color:#9A93AC; margin-bottom:3px;">114 學年度第 1 學期 · 各班個別課一覽</div>
+        <h1 style="margin:0; font-size:22px; font-weight:700;">📚 班級課表</h1>
+      </div>
+      <div style="flex:none;">{{ classPicker }}</div>
+    </header>
+    <div style="flex:1; overflow:auto; padding:22px 28px 36px;">
+      {{ summary }}
+      {{ grid }}
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { klass: null };
+  G = {
+    strings:{ label:'弦樂', bg:'#FF8E63', soft:'#FFEDE4', ink:'#C2502A' },
+    piano:  { label:'鋼琴', bg:'#F2B33C', soft:'#FFF3DC', ink:'#A9741A' },
+    winds:  { label:'管樂', bg:'#3FD0A8', soft:'#DEF7EF', ink:'#1E8A6C' },
+    perc:   { label:'擊樂', bg:'#FF6FB5', soft:'#FFE5F1', ink:'#C23B82' },
+  };
+  componentDidMount() {
+    this._u = AppStore.subscribe(() => this.forceUpdate());
+    const cs = this.classes();
+    if (!this.state.klass && cs.length) this.setState({ klass: cs[0] });
+  }
+  componentWillUnmount() { if (this._u) this._u(); }
+
+  classes() {
+    const set = {};
+    AppStore.list('students').forEach(s => { if (s.klass) set[s.klass] = 1; });
+    return Object.keys(set).sort();
+  }
+  grpOf(stu, teacher) {
+    // 此堂屬主修或副修 → 取對應組別上色
+    if (!stu) return teacher ? teacher.group : 'piano';
+    if (teacher && stu.minorG === teacher.group && stu.majorG !== teacher.group) return stu.minorG;
+    return stu.majorG;
+  }
+
+  renderVals() {
+    const h = React.createElement;
+    const G = this.G;
+    const klass = this.state.klass;
+    const students = AppStore.list('students');
+    const teachers = AppStore.list('teachers');
+    const bookings = AppStore.bookings();
+    const DAYS = AppStore.DAYS;
+    const PERIODS = AppStore.PERIODS;
+
+    const classStudents = students.filter(s => s.klass === klass);
+    const names = {}; classStudents.forEach(s => names[s.name] = s);
+    const classBookings = bookings.filter(b => names[b.student] || classStudents.some(s => s.id === b.studentId));
+
+    // ---- picker ----
+    const classPicker = h('select', { value: klass || '', onChange:e=>this.setState({ klass:e.target.value }),
+      style:{ border:'1px solid #E2DCEC', borderRadius:11, padding:'10px 14px', fontSize:14, fontWeight:600, color:'#2A2740', background:'#fff', cursor:'pointer', fontFamily:'inherit' } },
+      [h('option',{key:'_',value:''},'— 選擇班級 —')].concat(this.classes().map(c => h('option',{key:c,value:c}, c))));
+
+    // ---- summary ----
+    const summary = h('div', { style:{ display:'flex', gap:14, marginBottom:18, flexWrap:'wrap' } },
+      [['本班學生', classStudents.length+' 位'],['本週個別課', classBookings.length+' 堂'],
+       ['尚未排課', classStudents.filter(s=>!classBookings.some(b=>b.student===s.name||b.studentId===s.id)).length+' 位']].map((x,i)=>
+        h('div',{key:i,style:{flex:'1 1 160px',background:'#fff',border:'1px solid #ECE7F2',borderRadius:16,padding:'14px 18px',boxShadow:'0 4px 16px rgba(40,30,70,.04)'}},
+          h('div',{style:{fontSize:12.5,color:'#9A93AC',marginBottom:6}}, x[0]),
+          h('div',{style:{fontSize:22,fontWeight:700,fontFamily:'Fredoka'}}, x[1]))));
+
+    if (!klass) return { classPicker, summary, grid: h('div',{style:{color:'#9A93AC',padding:'30px 0',textAlign:'center'}},'請選擇班級') };
+
+    // ---- weekly grid ----
+    const colGrid = '64px repeat(5,1fr)';
+    const head = h('div', { style:{ display:'grid', gridTemplateColumns:colGrid, gap:6, marginBottom:6 } },
+      [h('div',{key:'c'})].concat(DAYS.map(d => h('div',{key:d,style:{textAlign:'center',fontSize:13,fontWeight:700,color:'#6E6A86',padding:'6px 0'}},'週'+d))));
+
+    const rows = PERIODS.filter(p=>!p.lunch).map(p => {
+      const cells = DAYS.map(d => {
+        const here = classBookings.filter(b => b.day===d && b.k===p.k);
+        const items = here.map((b,i) => {
+          const stu = names[b.student] || classStudents.find(s=>s.id===b.studentId);
+          const t = teachers.find(x=>x.id===b.teacherId);
+          const g = G[this.grpOf(stu, t)] || G.piano;
+          return h('div',{key:i,style:{background:g.soft,border:'1px solid '+g.bg+'66',borderRadius:8,padding:'5px 7px',marginBottom:i<here.length-1?4:0,textAlign:'left'}},
+            h('div',{style:{fontSize:11.5,fontWeight:700,color:g.ink}}, b.student),
+            h('div',{style:{fontSize:9.5,color:g.ink,opacity:.85}}, (t?t.name:'')+' · '+b.room+' · '+b.type));
+        });
+        return h('div',{key:d,style:{minHeight:46,background:here.length?'#fff':'#FBFAFD',border:'1px solid #EFECF4',borderRadius:8,padding:4,display:'flex',flexDirection:'column',justifyContent:'center'}}, items);
+      });
+      return h('div',{key:p.k,style:{display:'grid',gridTemplateColumns:colGrid,gap:6,marginBottom:6}},
+        h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#9A93AC'}},
+          h('div',{style:{fontSize:13,fontWeight:700}}, p.label),
+          h('div',{style:{fontSize:10}}, p.time)), ...cells);
+    });
+    const grid = h('div', { style:{ background:'#fff', border:'1px solid #ECE7F2', borderRadius:18, padding:18, boxShadow:'0 4px 16px rgba(40,30,70,.04)' } }, head, ...rows);
+
+    return { classPicker, summary, grid };
+  }
+}
+</script>
+</body>
+</html>

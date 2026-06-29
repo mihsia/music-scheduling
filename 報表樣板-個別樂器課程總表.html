@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>報表樣板 · 個別樂器課程總表</title>
+<style>
+  @page { size: A4 landscape; margin: 10mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Noto Sans TC","PMingLiU",system-ui,sans-serif; color: #111; background: #f3f3f3; padding: 18px; }
+  .sheet { background:#fff; width: 1040px; margin: 0 auto 24px; padding: 18px 22px 26px; box-shadow: 0 1px 6px rgba(0,0,0,.15); }
+  .titlebar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin: 4px 4px 12px; }
+  .titlebar h2 { margin:0; font-size:20px; letter-spacing:2px; font-weight:800; }
+  .titlebar .sub { font-size:15px; }
+  .legend { margin-left:auto; display:flex; gap:6px; align-items:center; font-size:14px; }
+  .legend b { padding:1px 10px; border-radius:3px; font-weight:700; }
+  table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  th, td { border:1px solid #222; padding:7px 6px; font-size:14px; text-align:center; vertical-align:middle; height:46px; }
+  thead th { background:#fff; font-weight:800; letter-spacing:1px; }
+  .colT { width:150px; text-align:center; }
+  .colR { width:96px; }
+  td.t { font-weight:700; text-align:center; }
+  td.r { font-weight:600; }
+  .cell { display:inline-block; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap; }
+  .note { width:1040px; margin:0 auto 18px; font-size:13px; color:#555; line-height:1.8; background:#fff; border:1px dashed #bbb; border-radius:8px; padding:12px 16px; }
+  @media print { body{background:#fff;padding:0} .sheet{box-shadow:none;margin:0;width:auto} .note{display:none} }
+</style>
+</head>
+<body>
+
+<div class="note">
+  <b>※ 這是報表樣板(版面預覽),尚未接到系統資料。</b> 版面參考你提供的「個別樂器課程總表」:以<b>老師為列、節次為欄</b>的單日總表,左側帶「上課琴房」,每格顯示「年級 學生姓名(主/副)」並依年級上色。
+  正式版接上系統後,會自動依實際排課產生,每個星期一張(星期一～五),年級碼由學生「班級」自動帶出、上課時間由節次帶出。下方以「星期一」為例。
+</div>
+
+<div class="sheet">
+  <div class="titlebar">
+    <h2 id="title">114 總表　個別樂器課程　星期一</h2>
+    <span class="sub">（上學期 15 堂課）（下學期 14 堂課）</span>
+    <span class="legend">
+      <b style="background:#9be36a">3</b>
+      <b style="background:#ffe14d">4</b>
+      <b style="background:#74e0f3">5</b>
+      <b style="background:#f45fd0">6</b>
+    </span>
+  </div>
+  <table id="tbl"></table>
+</div>
+
+<script>
+  // 年級配色(年級 → 底色)
+  var GRADE_BG = { 3:'#9be36a', 4:'#ffe14d', 5:'#74e0f3', 6:'#f45fd0' };
+  // 節次(欄)
+  var PERIODS = ['08:30','09:20','10:10','11:00'];
+  // 老師列:[老師(樂器), 上課琴房, {節次:[年級,學生,主/副], ...}]
+  var ROWS = [
+    ['賴美如（鋼琴）','琴房 一',  {2:[3,'楊昕樂','主'], 3:[4,'楊沂菲','主']}],
+    ['王乃昕（鋼琴）','琴房 二',  {0:[4,'簡廷宇','副'], 1:[3,'藍諭佳','主'], 2:[3,'王樂樂','主'], 3:[3,'曾予糧','主']}],
+    ['陳永禎（鋼琴）','琴房 三',  {2:[6,'鄭鼎瀚','副'], 3:[4,'鄭翔文','副']}],
+    ['李毓寧（大提琴）','琴房 四',{0:[6,'徐皓琮','主'], 1:[3,'曾予糧','副'], 2:[4,'簡廷宇','主']}],
+    ['林于涵（鋼琴）','琴房 五',  {0:[4,'林軾穎','主'], 1:[4,'丁安家','主'], 2:[5,'曾予愛','主'], 3:[3,'蔡定恒','副']}],
+    ['蔡珮君（鋼琴）','琴房 六',  {0:[6,'陳芷瑜','主'], 1:[3,'李宣慈','主'], 2:[5,'余可昀','副'], 3:[4,'黃祥沐','副']}],
+    ['鄒銘軒（鋼琴）','琴房 七',  {1:[6,'周宥蓉','副'], 2:[3,'周宥辰','副']}],
+    ['廖秋萍（小提琴）','琴房 十',{2:[4,'鄭翔文','主'], 3:[6,'鄭鼎瀚','主']}],
+    ['呂明芳（鋼琴）','琴房 十三',{0:[5,'吳夏儒','副'], 1:[6,'李牧慈','副'], 2:[6,'徐皓琮','副'], 3:[5,'李品樂','主']}],
+    ['林淑敏（小提琴）','琴房 十四',{0:[4,'黃祥沐','主'], 1:[3,'蔡定恒','主'], 2:[5,'吳夏儒','主'], 3:[4,'丁安家','副']}],
+    ['吳瑞宗（打擊）','三樓大合奏',{0:[3,'周宥辰','主'], 1:[5,'李品樂','副'], 2:[4,'桂唯恩','主'], 3:[6,'周宥蓉','主']}],
+    ['黃靖茹（打擊）','弦 B 教室', {3:[3,'藍諭佳','副']}],
+  ];
+
+  function build() {
+    var t = document.getElementById('tbl');
+    // header
+    var thead = '<thead><tr><th class="colT">樂器指導老師</th><th class="colR">上課琴房</th>';
+    PERIODS.forEach(function(p){ thead += '<th>'+p+'</th>'; });
+    thead += '</tr></thead>';
+    // body
+    var tb = '<tbody>';
+    ROWS.forEach(function(row){
+      tb += '<tr><td class="t">'+row[0]+'</td><td class="r">'+row[1]+'</td>';
+      for (var i=0;i<PERIODS.length;i++){
+        var c = row[2][i];
+        if (c) {
+          var bg = GRADE_BG[c[0]] || '#eee';
+          tb += '<td><span class="cell" style="background:'+bg+'">'+c[0]+' '+c[1]+'('+c[2]+')</span></td>';
+        } else {
+          tb += '<td></td>';
+        }
+      }
+      tb += '</tr>';
+    });
+    tb += '</tbody>';
+    t.innerHTML = thead + tb;
+  }
+  build();
+</script>
+
+</body>
+</html>

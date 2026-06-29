@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./store.js?v=8"></script>
+<script src="./support.js?v=8"></script>
+<script src="./nav.js?v=8" defer></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; }
+  @media print {
+    .no-print { display:none !important; }
+    html, body { background:#fff !important; }
+    .rc-shell { display:block !important; height:auto !important; overflow:visible !important; }
+    .rc-main, .rc-scroll { overflow:visible !important; height:auto !important; }
+    .rc-preview { padding:0 !important; background:#fff !important; }
+    .rc-sheet { box-shadow:none !important; margin:0 auto !important; page-break-after:always; }
+  }
+  @page { size: A4 landscape; }
+</style>
+</helmet>
+<div class="rc-shell" style="font-family:'Fredoka','Noto Sans TC',sans-serif; color:#2A2740; height:100vh; display:flex; overflow:hidden;">
+
+  <aside class="no-print" style="width:226px; flex:none; background:#2A2740; color:#fff; display:flex; flex-direction:column; padding:22px 16px;">
+    <div style="display:flex; align-items:center; gap:11px; padding:4px 8px 22px;">
+      <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6D54E8,#C25BD6);display:flex;align-items:center;justify-content:center;font-size:20px;">♪</div>
+      <div><div style="font-size:17px;font-weight:700;letter-spacing:.5px;">樂排</div><div style="font-size:11px;opacity:.55;">音樂班排課系統</div></div>
+    </div>
+    <div style="font-size:11px; opacity:.4; letter-spacing:1px; padding:6px 10px;">主選單</div>
+    <nav style="display:flex; flex-direction:column; gap:3px; margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📊<span>總覽 Dashboard</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎻<span>外聘老師</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎒<span>學生資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🚪<span>琴房資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📚<span>班級課表</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">⚙️<span>排課原則</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎼<span>排課工作台</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;font-size:14px;font-weight:600;background:linear-gradient(135deg,#6D54E8,#9A4FE0);box-shadow:0 6px 16px rgba(109,84,232,.4);cursor:pointer;">📈<span>報表中心</span></div>
+    </nav>
+    <div style="margin-top:auto; display:flex; align-items:center; gap:10px; padding:11px; background:rgba(255,255,255,.07); border-radius:14px;">
+      <div style="width:34px;height:34px;border-radius:50%;background:#9A4FE0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">王</div>
+      <div style="line-height:1.3;"><div style="font-size:13px;font-weight:600;">王主任</div><div style="font-size:11px;opacity:.55;">教務管理者</div></div>
+    </div>
+  </aside>
+
+  <main class="rc-main" style="flex:1; display:flex; flex-direction:column; overflow:hidden; background:#FAF7F3;">
+    <header class="no-print" style="flex:none; padding:18px 28px; background:#fff; border-bottom:1px solid #EDE8F2; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div style="font-size:12px; color:#9A93AC; margin-bottom:3px;">114 學年度第 1 學期 · 預覽後可列印或下載</div>
+        <h1 style="margin:0; font-size:22px; font-weight:700;">📈 報表中心</h1>
+      </div>
+      <div style="flex:none;">{{ outputs }}</div>
+    </header>
+    <div style="flex:1; display:flex; overflow:hidden;">
+      <section class="no-print" style="width:260px; flex:none; border-right:1px solid #EDE8F2; background:#fff; padding:18px 16px; overflow:auto;">
+        <div style="font-size:12px; color:#9A93AC; letter-spacing:1px; margin-bottom:10px;">選擇報表</div>
+        {{ reportList }}
+        {{ picker }}
+      </section>
+      <section class="rc-scroll" style="flex:1; overflow:auto; padding:26px; background:#F0EDF4;">
+        <div class="rc-preview">{{ preview }}</div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { report: 'masterGrid', studentId: null, teacherId: null };
+  G = {
+    strings:{ label:'弦樂', bg:'#FF8E63', soft:'#FFEDE4', ink:'#C2502A' },
+    piano:  { label:'鋼琴', bg:'#F2B33C', soft:'#FFF3DC', ink:'#A9741A' },
+    winds:  { label:'管樂', bg:'#3FD0A8', soft:'#DEF7EF', ink:'#1E8A6C' },
+    perc:   { label:'擊樂', bg:'#FF6FB5', soft:'#FFE5F1', ink:'#C23B82' },
+  };
+  REPORTS = [
+    { key:'masterGrid',    icon:'🗓️', label:'個別樂器課程總表', needs:null },
+    { key:'all',           icon:'📋', label:'全校排課清單（一週）', needs:null },
+    { key:'teacherStat',   icon:'📊', label:'老師授課 / 鐘點統計', needs:null },
+    { key:'roomUse',       icon:'🚪', label:'琴房使用表',          needs:null },
+    { key:'pending',       icon:'⚠️', label:'待排 / 衝突清單',     needs:null },
+    { key:'studentNotice', icon:'🎒', label:'學生個別課通知單',    needs:'student' },
+    { key:'teacherNotice', icon:'🎻', label:'老師個別課通知單',    needs:'teacher' },
+  ];
+
+  componentDidMount() {
+    this._u = AppStore.subscribe(() => this.forceUpdate());
+    const bk = AppStore.bookings();
+    const ss = AppStore.list('students'), ts = AppStore.list('teachers');
+    this.setState({
+      studentId: (ss.find(s => bk.some(b => b.studentId===s.id || b.student===s.name)) || ss[0] || {}).id || null,
+      teacherId: (ts.find(t => bk.some(b => b.teacherId===t.id)) || ts[0] || {}).id || null,
+    });
+  }
+  componentWillUnmount() { if (this._u) this._u(); }
+
+  // ---- 工具 ----
+  pInfo(k) { return (AppStore.PERIODS || []).find(x => x.k === k) || { time:'', label:'' }; }
+  endTime(start) {
+    const len = (AppStore.getRules().courseLen) || 45;
+    const m = /^(\d{1,2}):(\d{2})$/.exec(start || ''); if (!m) return '';
+    let t = (+m[1])*60 + (+m[2]) + len;
+    return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+  }
+  range(k) { const p = this.pInfo(k); return p.time ? p.time+'–'+this.endTime(p.time) : '—'; }
+  sortBk(list) {
+    const o=['p1','p2','p3','p4','p6','p7','p8','p9'], d=['一','二','三','四','五'];
+    return list.slice().sort((a,b)=>(d.indexOf(a.day)-d.indexOf(b.day))||(o.indexOf(a.k)-o.indexOf(b.k)));
+  }
+  isMajor(stu, t) { if (!stu||!t) return true; if (stu.minorG===t.group && stu.majorG!==t.group) return false; return true; }
+  conflicts() {
+    const bookings = AppStore.bookings(), teachers = AppStore.list('teachers'), out=[];
+    const grp={}; bookings.forEach(b=>{ const k=b.day+'|'+b.k; (grp[k]=grp[k]||[]).push(b); });
+    Object.keys(grp).forEach(key=>{
+      const list=grp[key], time='週'+list[0].day+' '+this.pInfo(list[0].k).time;
+      const by=(f)=>{ const m={}; list.forEach(b=>{ const v=f(b); (m[v]=m[v]||[]).push(b); }); return m; };
+      const r=by(b=>b.room); Object.keys(r).forEach(x=>{ if(r[x].length>1) out.push(['琴房重複',time,'琴房 '+x+' 同時段 '+r[x].length+' 堂']); });
+      const tt=by(b=>b.teacherId); Object.keys(tt).forEach(x=>{ if(tt[x].length>1){ const t=teachers.find(y=>y.id===x); out.push(['老師重複',time,(t?t.name:'老師')+' 同時段 '+tt[x].length+' 堂']); } });
+      const ss=by(b=>b.student); Object.keys(ss).forEach(x=>{ if(ss[x].length>1) out.push(['學生重複',time,x+' 同時段 '+ss[x].length+' 堂']); });
+    });
+    return out;
+  }
+
+  // ---- 個別樂器課程總表 用 ----
+  PORDER = ['p1','p2','p3','p4','p6','p7','p8','p9'];
+  GRADEBG = { 3:{bg:'#CBF0B8',ink:'#2E7D32'}, 4:{bg:'#FFE6A6',ink:'#9A6A12'}, 5:{bg:'#BFE6FB',ink:'#1668A3'}, 6:{bg:'#F8C7E4',ink:'#A83A7E'}, 7:{bg:'#D9D2F5',ink:'#5B43B8'}, 8:{bg:'#FFD9C2',ink:'#B25A2A'}, 9:{bg:'#C9EFE6',ink:'#1E8A6C'} };
+  CN2NUM = { '一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10 };
+  gradeOf(klass) { // 由班級取年級數字（支援「三年甲」「七年甲」「3年甲」等）
+    if (!klass) return 0;
+    const m = /(\d+)/.exec(klass); if (m) return +m[1];
+    const c = klass.charAt(0); return this.CN2NUM[c] || 0;
+  }
+  gradeColor(g) { return this.GRADEBG[g] || { bg:'#ECE7F2', ink:'#5A5470' }; }
+  // 節次起始時間：由「可排課時段」起始 + (課長+緩衝) 推算
+  pStart(k) {
+    const r = AppStore.getRules();
+    const m = /^(\d{1,2}):(\d{2})$/.exec(r.dayStart || '08:00'); if (!m) return this.pInfo(k).time;
+    const idx = this.PORDER.indexOf(k); if (idx < 0) return this.pInfo(k).time;
+    let t = (+m[1])*60 + (+m[2]) + idx * ((+r.courseLen||45) + (+r.buffer||0));
+    return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+  }
+  usedPeriods(bookings) { // 全週有用到的節次（依序）
+    const set = {}; bookings.forEach(b=>{ set[b.k]=1; });
+    return this.PORDER.filter(k=>set[k]);
+  }
+  weekDaysWithBk(bookings) { return AppStore.DAYS.filter(d=>bookings.some(b=>b.day===d)); }
+  teacherLabel(t) { return (t.name||'') + '（' + (t.instrument||'') + '）'; }
+  // 某老師某天的上課琴房（通常一間,多間則並列）
+  roomsTeacherDay(tid, day, bookings) {
+    const rs = Array.from(new Set(bookings.filter(b=>b.teacherId===tid && b.day===day).map(b=>b.room)));
+    return rs.join('、');
+  }
+  // 儲存格資訊：年級、班級、學生、主/副
+  cellInfo(tid, day, k, bookings, students, teacher) {
+    const bs = bookings.filter(b=>b.teacherId===tid && b.day===day && b.k===k);
+    if (!bs.length) return null;
+    return bs.map(b=>{
+      const s = students.find(x=>x.id===b.studentId || x.name===b.student) || {};
+      const major = b.type ? b.type==='主修' : (s.majorG===(teacher&&teacher.group));
+      return { grade:this.gradeOf(s.klass), klass:s.klass||'', name:b.student, mm: major?'主':'副' };
+    });
+  }
+  // 某天有課的老師（依老師清單順序）
+  teachersOfDay(day, bookings, teachers) {
+    const ids = {}; bookings.filter(b=>b.day===day).forEach(b=>{ ids[b.teacherId]=1; });
+    return teachers.filter(t=>ids[t.id]);
+  }
+
+  // ---- 產生目前報表的資料（供預覽與匯出共用） ----
+  current() {
+    const students = AppStore.list('students'), teachers = AppStore.list('teachers'), rooms = AppStore.list('rooms');
+    const bookings = this.sortBk(AppStore.bookings());
+    const len = (AppStore.getRules().courseLen)||45;
+    const def = this.REPORTS.find(r=>r.key===this.state.report) || this.REPORTS[0];
+    let head=[], rows=[], title=def.label;
+
+    if (def.key==='masterGrid') {
+      const cols = this.usedPeriods(bookings);
+      const days = this.weekDaysWithBk(bookings);
+      head = ['星期','樂器指導老師','上課琴房'].concat(cols.map(k=>this.pStart(k)));
+      days.forEach(d=>{
+        this.teachersOfDay(d, bookings, teachers).forEach(t=>{
+          const row = ['星期'+d, this.teacherLabel(t), this.roomsTeacherDay(t.id, d, bookings)];
+          cols.forEach(k=>{
+            const info = this.cellInfo(t.id, d, k, bookings, students, t);
+            row.push(info ? info.map(c=>c.grade+' '+c.klass+' '+c.name+'('+c.mm+')').join(' / ') : '');
+          });
+          rows.push(row);
+        });
+      });
+      title = '個別樂器課程總表';
+    } else if (def.key==='all') {
+      head=['星期','節次','時間','學生','班級','主/副修','老師','琴房'];
+      rows = bookings.map(b=>{ const s=students.find(x=>x.id===b.studentId||x.name===b.student)||{}; const t=teachers.find(x=>x.id===b.teacherId)||{};
+        return ['週'+b.day, this.pInfo(b.k).label, this.range(b.k), b.student, s.klass||'', (this.isMajor(s,t)?'主修':'副修'), t.name||'', b.room]; });
+    } else if (def.key==='teacherStat') {
+      head=['老師','組別','樂器','本週堂數','時數(小時)','開課日'];
+      rows = teachers.map(t=>{ const bs=bookings.filter(b=>b.teacherId===t.id); const days=Array.from(new Set(bs.map(b=>'週'+b.day)));
+        return [t.name, (this.G[t.group]||{}).label||'', t.instrument, bs.length, (bs.length*len/60).toFixed(bs.length*len%60?1:0), days.join('、')||'—']; });
+    } else if (def.key==='roomUse') {
+      head=['琴房','樓層','適用組別','本週使用堂數','使用率(/40格)'];
+      rows = rooms.map(r=>{ const u=bookings.filter(b=>b.room===r.id).length; const gs=(r.groups||[]).map(g=>(this.G[g]||{}).label||g).join('、');
+        return [r.id, r.floor||'', gs, u, Math.round(u/40*100)+'%']; });
+    } else if (def.key==='pending') {
+      head=['類型','對象 / 時間','說明'];
+      students.filter(s=>!bookings.some(b=>b.student===s.name||b.studentId===s.id)).forEach(s=>{
+        rows.push(['待排學生', s.name+'（'+s.klass+'）', '主修 '+s.majorI+' / 副修 '+s.minorI+' 尚未排課']); });
+      this.conflicts().forEach(c=> rows.push([c[0], c[1], c[2]]));
+      if (!rows.length) rows.push(['—','—','目前無待排學生與衝突 ✓']);
+    } else if (def.key==='studentNotice') {
+      const s = students.find(x=>x.id===this.state.studentId);
+      head=['項目','樂器','授課老師','星期','上課時間','琴房'];
+      if (s) this.sortBk(bookings.filter(b=>b.studentId===s.id||b.student===s.name)).forEach(b=>{ const t=teachers.find(x=>x.id===b.teacherId)||{};
+        rows.push([this.isMajor(s,t)?'主修':'副修', this.isMajor(s,t)?s.majorI:s.minorI, (t.name||'')+' 老師', '週'+b.day, this.range(b.k), b.room]); });
+      title = (s?s.name:'')+' 個別課通知單';
+    } else if (def.key==='teacherNotice') {
+      const t = teachers.find(x=>x.id===this.state.teacherId);
+      head=['星期','上課時間','學生','班級','主/副修','琴房'];
+      if (t) this.sortBk(bookings.filter(b=>b.teacherId===t.id)).forEach(b=>{ const s=students.find(x=>x.id===b.studentId||x.name===b.student)||{};
+        rows.push(['週'+b.day, this.range(b.k), b.student, s.klass||'', this.isMajor(s,t)?'主修':'副修', b.room]); });
+      title = (t?t.name:'')+' 老師授課通知單';
+    }
+    return { def, title, head, rows };
+  }
+
+  // ---- 匯出 ----
+  download(filename, blob) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+  doPrint() { window.print(); }
+  doCSV() {
+    const c = this.current(); const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const csv = '﻿' + [c.head].concat(c.rows).map(r=>r.map(esc).join(',')).join('\r\n');
+    this.download(this.fname(c.title)+'.csv', new Blob([csv], { type:'text/csv;charset=utf-8' }));
+  }
+  doDoc() {
+    const c = this.current();
+    const th = c.head.map(x=>'<th style="background:#2A2740;color:#fff;padding:6px 8px">'+x+'</th>').join('');
+    const tr = c.rows.map(r=>'<tr>'+r.map(x=>'<td style="border:1px solid #888;padding:5px 8px">'+(x==null?'':x)+'</td>').join('')+'</tr>').join('');
+    const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body>'
+      + '<h2 style="font-family:sans-serif">'+AppStore.schoolFull()+'　'+c.title+'</h2>'
+      + '<div style="font-family:sans-serif;color:#555">'+AppStore.yearTerm()+'</div><br>'
+      + '<table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;font-family:sans-serif;font-size:13px"><tr>'+th+'</tr>'+tr+'</table></body></html>';
+    this.download(this.fname(c.title)+'.doc', new Blob(['﻿'+html], { type:'application/msword' }));
+  }
+  fname(t) { return (AppStore.schoolShort()+'_'+t).replace(/[\\/:*?"<>|\s]+/g,'_'); }
+
+  renderVals() {
+    const h = React.createElement, G = this.G, st = this.state;
+    const students = AppStore.list('students'), teachers = AppStore.list('teachers');
+
+    // ---- 輸出按鈕 ----
+    const obtn = (txt, on, c) => h('button',{ onClick:on, style:{ cursor:'pointer', border:'none', fontFamily:'inherit', fontSize:13.5, fontWeight:600, padding:'10px 16px', borderRadius:11, color:'#fff', background:c, marginLeft:10, boxShadow:'0 4px 12px rgba(40,30,70,.12)' } }, txt);
+    const outputs = h('div', { style:{ display:'flex', alignItems:'center' } },
+      obtn('🖨 列印 / PDF', ()=>this.doPrint(), 'linear-gradient(135deg,#6D54E8,#9A4FE0)'),
+      obtn('⬇ Excel (CSV)', ()=>this.doCSV(), '#1FAE8B'),
+      obtn('⬇ Word', ()=>this.doDoc(), '#3A6FE0'));
+
+    // ---- 報表清單 ----
+    const reportList = h('div', { style:{ display:'flex', flexDirection:'column', gap:6 } },
+      this.REPORTS.map(r=>{ const on = st.report===r.key;
+        return h('button',{ key:r.key, onClick:()=>this.setState({ report:r.key }),
+          style:{ cursor:'pointer', textAlign:'left', fontFamily:'inherit', fontSize:13.5, fontWeight:on?700:500, padding:'11px 13px', borderRadius:12,
+            border:'1px solid '+(on?'#6D54E8':'#ECE7F2'), background:on?'#F4F1FB':'#fff', color:'#2A2740', display:'flex', alignItems:'center', gap:9 } },
+          h('span',{style:{fontSize:16}}, r.icon), r.label); }));
+
+    // ---- 對象選擇（通知單類） ----
+    const def = this.REPORTS.find(r=>r.key===st.report);
+    let picker = null;
+    const selStyle = { width:'100%', marginTop:12, border:'1px solid #E2DCEC', borderRadius:10, padding:'10px 11px', fontSize:13.5, color:'#2A2740', background:'#fff', cursor:'pointer', fontFamily:'inherit' };
+    if (def && def.needs==='student')
+      picker = h('select',{ value:st.studentId||'', onChange:e=>this.setState({studentId:e.target.value}), style:selStyle },
+        [h('option',{key:'_',value:''},'— 選擇學生 —')].concat(students.map(s=>h('option',{key:s.id,value:s.id}, s.name+'（'+s.klass+'）'))));
+    if (def && def.needs==='teacher')
+      picker = h('select',{ value:st.teacherId||'', onChange:e=>this.setState({teacherId:e.target.value}), style:selStyle },
+        [h('option',{key:'_',value:''},'— 選擇老師 —')].concat(teachers.map(t=>h('option',{key:t.id,value:t.id}, t.name))));
+
+    return { outputs, reportList, picker, preview: this.preview() };
+  }
+
+  // ---- 預覽（A4 紙張外觀） ----
+  preview() {
+    const h = React.createElement, G = this.G;
+    const c = this.current();
+    const sheet = (children) => h('div', { className:'rc-sheet', style:{ width:780, margin:'0 auto', background:'#fff', borderRadius:6, boxShadow:'0 6px 24px rgba(40,30,70,.12)', padding:'46px 50px', color:'#23202E' } }, children);
+    const masthead = h('div', { style:{ borderBottom:'3px solid #6D54E8', paddingBottom:14, marginBottom:18 } },
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}},
+        h('div',null,
+          h('div',{style:{fontFamily:"'Noto Serif TC',serif",fontSize:22,fontWeight:900,letterSpacing:2}}, AppStore.schoolFull()),
+          h('div',{style:{fontSize:12.5,color:'#9A93AC',marginTop:3}}, AppStore.yearTerm())),
+        h('div',{style:{fontSize:16,fontWeight:700,color:'#6D54E8'}}, c.title)));
+
+    const table = (head, rows) => h('table', { style:{ width:'100%', borderCollapse:'collapse', fontSize:13 } },
+      h('thead',null, h('tr',{style:{background:'#2A2740',color:'#fff'}}, head.map((x,i)=>h('th',{key:i,style:{padding:'9px 8px',fontWeight:600,textAlign:'left'}}, x)))),
+      h('tbody',null, rows.length ? rows.map((r,i)=>h('tr',{key:i,style:{background:i%2?'#FAF9FE':'#fff'}}, r.map((x,j)=>h('td',{key:j,style:{border:'1px solid #ECE7F2',padding:'8px 8px'}}, x)))) :
+        [h('tr',{key:'n'},h('td',{colSpan:head.length,style:{border:'1px solid #ECE7F2',padding:'18px',textAlign:'center',color:'#9A93AC'}},'查無資料'))]));
+
+    // 個別樂器課程總表:有課的星期各一張(老師×節次)
+    if (c.def.key==='masterGrid') return this.masterSheets();
+    // 全校總表額外提供週格視覺;其餘以表格呈現
+    if (c.def.key==='all') return sheet([masthead, this.weekGrid(), h('div',{style:{height:18}}), table(c.head, c.rows)]);
+    return sheet([masthead, table(c.head, c.rows),
+      h('div',{style:{marginTop:22,fontSize:11.5,color:'#9A93AC',display:'flex',justifyContent:'space-between'}},
+        h('span',null,'承辦：教務處'), h('span',null,'列印日期：2026 / 06 / 25'))]);
+  }
+
+  // ---- 個別樂器課程總表:預覽(各有課星期一張) ----
+  masterSheets() {
+    const h = React.createElement;
+    const students = AppStore.list('students'), teachers = AppStore.list('teachers');
+    const bookings = AppStore.bookings();
+    const cols = this.usedPeriods(bookings);
+    const days = this.weekDaysWithBk(bookings);
+    if (!days.length || !cols.length)
+      return h('div', { style:{ textAlign:'center', color:'#9A93AC', padding:'46px', background:'#fff', borderRadius:6 } }, '目前沒有任何排課,無法產生總表');
+    return h('div', null, days.map(d=>this.masterSheet(d, cols, bookings, students, teachers)));
+  }
+  masterSheet(day, cols, bookings, students, teachers) {
+    const h = React.createElement;
+    const rows = this.teachersOfDay(day, bookings, teachers);
+    const legendChip = (g)=>{ const c=this.gradeColor(g); return h('span',{key:g,style:{display:'inline-flex',alignItems:'center',justifyContent:'center',minWidth:22,height:20,padding:'0 6px',borderRadius:6,fontWeight:800,fontSize:12,background:c.bg,color:c.ink,marginLeft:4}}, g); };
+    const gradesUsed = Array.from(new Set([].concat.apply([], rows.map(t=>cols.map(k=>{ const ci=this.cellInfo(t.id,day,k,bookings,students,t); return ci?ci[0].grade:null; }))).filter(Boolean))).sort((a,b)=>a-b);
+    const head = h('div', { style:{ position:'relative', textAlign:'center', marginBottom:12 } },
+      h('div',{style:{position:'absolute',right:0,top:2,display:'flex',alignItems:'center'}}, h('span',{style:{fontSize:11.5,color:'#6E6A86'}},'年級'), gradesUsed.map(legendChip)),
+      h('div',{style:{fontSize:13,letterSpacing:3,color:'#6E6A86'}}, AppStore.schoolFull()),
+      h('div',{style:{fontFamily:"'Noto Serif TC',serif",fontSize:21,fontWeight:900,letterSpacing:4,marginTop:3}}, '個別樂器課程總表'),
+      h('div',{style:{fontSize:13,color:'#46414f',marginTop:4}}, AppStore.yearTerm()+'　·　星期'+day));
+
+    const th = { background:'#2A2740', color:'#fff', fontWeight:700, padding:'8px 6px', fontSize:13, border:'1px solid #2A2740' };
+    const headerRow = h('tr', null,
+      h('th',{style:Object.assign({},th,{width:150})},'樂器指導老師'),
+      h('th',{style:Object.assign({},th,{width:90})},'上課琴房'),
+      cols.map(k=>h('th',{key:k,style:th}, this.pStart(k))));
+
+    const bodyRows = rows.map((t,ri)=>{
+      const tds = [
+        h('td',{key:'t',style:{border:'1px solid #d8d3e4',padding:'6px 10px',fontWeight:700,textAlign:'left',fontSize:13,background:ri%2?'#faf9fd':'#fff'}}, this.teacherLabel(t)),
+        h('td',{key:'r',style:{border:'1px solid #d8d3e4',padding:'6px',fontWeight:600,color:'#3a3550',fontSize:13,textAlign:'center',background:ri%2?'#faf9fd':'#fff'}}, this.roomsTeacherDay(t.id, day, bookings)),
+      ];
+      cols.forEach(k=>{
+        const info = this.cellInfo(t.id, day, k, bookings, students, t);
+        tds.push(h('td',{key:k,style:{border:'1px solid #d8d3e4',padding:'5px',height:48,textAlign:'center',verticalAlign:'middle',background:ri%2?'#faf9fd':'#fff'}},
+          info ? info.map((c,ci)=>{ const col=this.gradeColor(c.grade);
+            return h('span',{key:ci,style:{display:'inline-block',padding:'4px 8px',borderRadius:8,background:col.bg,color:col.ink,fontWeight:700,fontSize:12.5,lineHeight:1.3,marginTop:ci?3:0}},
+              h('div',null, h('span',{style:{fontFamily:'Fredoka',marginRight:3}}, c.grade), c.name, h('span',{style:{fontSize:11,marginLeft:2}}, '('+c.mm+')')),
+              h('div',{style:{fontSize:10.5,opacity:.85}}, c.klass));
+          }) : null));
+      });
+      return h('tr',{key:t.id}, tds);
+    });
+
+    const cnt = rows.reduce((a,t)=>a+cols.filter(k=>this.cellInfo(t.id,day,k,bookings,students,t)).length,0);
+    const foot = h('div',{style:{display:'flex',justifyContent:'space-between',marginTop:10,fontSize:11.5,color:'#8b8598'}},
+      h('span',null,'本日合計 '+cnt+' 堂'), h('span',null,'製表:教務處　'+new Date().toLocaleDateString('zh-TW')));
+
+    return h('div', { className:'rc-sheet', style:{ width:1000, maxWidth:'100%', margin:'0 auto 24px', background:'#fff', borderRadius:6, boxShadow:'0 6px 24px rgba(40,30,70,.12)', padding:'30px 34px 26px', color:'#23202E' } },
+      head,
+      h('table',{style:{width:'100%',borderCollapse:'collapse',tableLayout:'fixed'}}, h('thead',null, headerRow), h('tbody',null, bodyRows)),
+      foot);
+  }
+
+  weekGrid() {
+    const h = React.createElement, G = this.G;
+    const DAYS = AppStore.DAYS, PERIODS = AppStore.PERIODS;
+    const teachers = AppStore.list('teachers'), students = AppStore.list('students');
+    const bookings = AppStore.bookings();
+    const colGrid = '52px repeat(5,1fr)';
+    const head = h('div',{style:{display:'grid',gridTemplateColumns:colGrid,gap:4,marginBottom:4}},
+      [h('div',{key:'c'})].concat(DAYS.map(d=>h('div',{key:d,style:{textAlign:'center',fontSize:12,fontWeight:700,color:'#6E6A86',padding:'4px 0'}},'週'+d))));
+    const rows = PERIODS.filter(p=>!p.lunch).map(p=>{
+      const cells = DAYS.map(d=>{
+        const here = bookings.filter(b=>b.day===d && b.k===p.k);
+        return h('div',{key:d,style:{minHeight:34,border:'1px solid #EFECF4',borderRadius:6,padding:3,background:here.length?'#fff':'#FBFAFD'}},
+          here.map((b,i)=>{ const s=students.find(x=>x.id===b.studentId||x.name===b.student); const t=teachers.find(x=>x.id===b.teacherId);
+            const g=G[(t&&t.group)||'piano']||G.piano;
+            return h('div',{key:i,style:{fontSize:9.5,lineHeight:1.3,color:g.ink}}, b.student+'·'+(t?t.name:'')); }));
+      });
+      return h('div',{key:p.k,style:{display:'grid',gridTemplateColumns:colGrid,gap:4,marginBottom:4}},
+        h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#9A93AC',fontSize:10}},
+          h('div',{style:{fontWeight:700}},p.label), p.time), ...cells);
+    });
+    return h('div',null, head, ...rows);
+  }
+}
+</script>
+</body>
+</html>

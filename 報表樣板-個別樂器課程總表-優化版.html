@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>報表樣板（優化版）· 個別樂器課程總表</title>
+<style>
+  @page { size: A4 landscape; margin: 9mm; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Noto Sans TC","PMingLiU",system-ui,sans-serif; color:#1c1c22; background:#eceaf1; padding:20px; }
+
+  .toolbar { width:1060px; max-width:100%; margin:0 auto 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:#fff; border:1px solid #e6e2ee; border-radius:14px; padding:12px 16px; box-shadow:0 4px 16px rgba(40,30,70,.06); }
+  .toolbar .lbl { font-size:13px; color:#6E6A86; }
+  .toolbar .grow { flex:1; }
+  .btn { cursor:pointer; border:none; font-family:inherit; font-size:13.5px; font-weight:700; padding:10px 16px; border-radius:11px; color:#fff; }
+  .btn.print { background:linear-gradient(135deg,#6D54E8,#9A4FE0); }
+  .btn.xls { background:#1FAE8B; }
+  .btn.doc { background:#3A6FE0; }
+  .btn.ghost { background:#fff; color:#6D54E8; border:1px solid #E2DCEC; }
+  .params { width:1060px; max-width:100%; margin:0 auto 18px; font-size:12.5px; color:#5a5570; background:#fbfaff; border:1px dashed #cdc4e6; border-radius:10px; padding:10px 16px; line-height:1.8; }
+  .params b{ color:#6D54E8; }
+
+  .sheet { background:#fff; width:1060px; max-width:100%; margin:0 auto 22px; padding:20px 24px 24px;
+    box-shadow:0 2px 10px rgba(0,0,0,.12); border-radius:4px; }
+  .head { text-align:center; position:relative; margin-bottom:14px; }
+  .head .school { font-size:14px; letter-spacing:3px; color:#6E6A86; }
+  .head .ttl { font-family:"Noto Serif TC",serif; font-size:23px; font-weight:900; letter-spacing:5px; margin-top:4px; }
+  .head .sub { font-size:13.5px; color:#46414f; margin-top:5px; }
+  .head .legend { position:absolute; right:0; top:2px; display:flex; gap:7px; align-items:center; }
+  .head .legend .lg { font-size:12px; color:#6E6A86; margin-right:2px; }
+  .chip { display:inline-flex; align-items:center; justify-content:center; min-width:24px; height:22px; padding:0 7px; border-radius:6px; font-weight:800; font-size:13px; }
+
+  table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  thead th { background:#2A2740; color:#fff; font-weight:700; letter-spacing:1px; padding:9px 6px; font-size:13.5px; border:1px solid #2A2740; }
+  thead th.cT { width:158px; } thead th.cR { width:100px; }
+  tbody td { border:1px solid #d8d3e4; padding:6px; height:48px; text-align:center; vertical-align:middle; font-size:13.5px; }
+  tbody tr:nth-child(even) td { background:#faf9fd; }
+  td.tname { font-weight:700; text-align:left; padding-left:12px; }
+  td.troom { font-weight:600; color:#3a3550; }
+  .cell { display:inline-block; min-width:78px; padding:5px 9px; border-radius:8px; font-weight:700; font-size:13px; line-height:1.25; }
+  .cell .gr { font-family:"Fredoka",sans-serif; margin-right:3px; }
+  .cell .mm { font-size:11px; font-weight:700; opacity:.8; margin-left:2px; }
+  .foot { display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#8b8598; }
+
+  @media print { body{background:#fff;padding:0} .toolbar,.params{display:none} .sheet{box-shadow:none;margin:0;border-radius:0;page-break-after:always;width:auto} }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span class="lbl">📈 個別樂器課程總表 ·（樣板優化版,版面預覽用)</span>
+  <span class="grow"></span>
+  <button class="btn print" onclick="window.print()">🖨 列印 / PDF</button>
+  <button class="btn xls" onclick="exportXLS()">⬇ Excel (CSV)</button>
+  <button class="btn doc" onclick="exportDOC()">⬇ Word</button>
+</div>
+
+<div class="params" id="params"></div>
+
+<div id="sheets"></div>
+
+<script>
+  // ===== 參數(正式版改為讀系統設定) =====
+  var SCHOOL = '南屏國小音樂班';
+  var TERM   = { year:114, term:1 };
+  var COUNTS = { up:15, down:14 };          // 上 / 下學期堂數(由各學期統計帶入)
+  // 「可排課時段」推算節次:起始時間 + 每堂(課長 + 緩衝)
+  var SCHED  = { start:'08:30', courseLen:45, buffer:5, periods:4 };
+
+  // 年級配色(優化:柔和、列印清晰、仍可區分)
+  var GRADE = {
+    3:{ bg:'#CBF0B8', ink:'#2E7D32' },
+    4:{ bg:'#FFE6A6', ink:'#9A6A12' },
+    5:{ bg:'#BFE6FB', ink:'#1668A3' },
+    6:{ bg:'#F8C7E4', ink:'#A83A7E' },
+  };
+
+  // 由可排課時段推算每節開始時間
+  function periodTimes() {
+    var m = /^(\d{1,2}):(\d{2})$/.exec(SCHED.start); if(!m) return [];
+    var t = (+m[1])*60 + (+m[2]); var step = SCHED.courseLen + SCHED.buffer; var out=[];
+    for (var i=0;i<SCHED.periods;i++){ out.push(String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')); t+=step; }
+    return out;
+  }
+  var TIMES = periodTimes();
+
+  // 只輸出「有排課的週間」。每天:[老師(樂器), 上課琴房, {節索引:[年級,學生,主/副]}]
+  var WEEK = {
+    '一':[
+      ['賴美如（鋼琴）','琴房 一',  {2:[3,'楊昕樂','主'], 3:[4,'楊沂菲','主']}],
+      ['王乃昕（鋼琴）','琴房 二',  {0:[4,'簡廷宇','副'], 1:[3,'藍諭佳','主'], 2:[3,'王樂樂','主'], 3:[3,'曾予糧','主']}],
+      ['陳永禎（鋼琴）','琴房 三',  {2:[6,'鄭鼎瀚','副'], 3:[4,'鄭翔文','副']}],
+      ['李毓寧（大提琴）','琴房 四',{0:[6,'徐皓琮','主'], 1:[3,'曾予糧','副'], 2:[4,'簡廷宇','主']}],
+      ['林于涵（鋼琴）','琴房 五',  {0:[4,'林軾穎','主'], 1:[4,'丁安家','主'], 2:[5,'曾予愛','主'], 3:[3,'蔡定恒','副']}],
+      ['蔡珮君（鋼琴）','琴房 六',  {0:[6,'陳芷瑜','主'], 1:[3,'李宣慈','主'], 2:[5,'余可昀','副'], 3:[4,'黃祥沐','副']}],
+      ['鄒銘軒（鋼琴）','琴房 七',  {1:[6,'周宥蓉','副'], 2:[3,'周宥辰','副']}],
+      ['廖秋萍（小提琴）','琴房 十',{2:[4,'鄭翔文','主'], 3:[6,'鄭鼎瀚','主']}],
+      ['呂明芳（鋼琴）','琴房 十三',{0:[5,'吳夏儒','副'], 1:[6,'李牧慈','副'], 2:[6,'徐皓琮','副'], 3:[5,'李品樂','主']}],
+      ['林淑敏（小提琴）','琴房 十四',{0:[4,'黃祥沐','主'], 1:[3,'蔡定恒','主'], 2:[5,'吳夏儒','主'], 3:[4,'丁安家','副']}],
+      ['吳瑞宗（打擊）','三樓大合奏',{0:[3,'周宥辰','主'], 1:[5,'李品樂','副'], 2:[4,'桂唯恩','主'], 3:[6,'周宥蓉','主']}],
+      ['黃靖茹（打擊）','弦 B 教室', {3:[3,'藍諭佳','副']}],
+    ],
+    '二':[
+      ['王乃昕（鋼琴）','琴房 二',  {0:[5,'李品樂','主'], 1:[3,'王樂樂','副']}],
+      ['李毓寧（大提琴）','琴房 四',{1:[6,'徐皓琮','主'], 2:[4,'林軾穎','副']}],
+      ['林于涵（鋼琴）','琴房 五',  {0:[3,'蔡定恒','主'], 3:[5,'曾予愛','副']}],
+      ['廖秋萍（小提琴）','琴房 十',{2:[4,'鄭翔文','主']}],
+      ['林淑敏（小提琴）','琴房 十四',{0:[4,'黃祥沐','副'], 1:[3,'藍諭佳','主'], 3:[5,'吳夏儒','主']}],
+    ],
+  };
+  var DAY_ORDER = ['一','二','三','四','五'];
+
+  function paramsLine() {
+    document.getElementById('params').innerHTML =
+      '※ 樣板(版面預覽,未接系統)。<b>節次時間由「可排課時段」推算</b>:起始 <b>'+SCHED.start+
+      '</b>,每堂 課長 '+SCHED.courseLen+' 分 + 緩衝 '+SCHED.buffer+' 分 → '+TIMES.join('、')+
+      '。<b>只輸出有排課的週間</b>(此例:星期一、二),正式版各天一張、可列印/Excel/Word。';
+  }
+
+  function buildSheet(day, rows) {
+    var th = '<thead><tr><th class="cT">樂器指導老師</th><th class="cR">上課琴房</th>';
+    TIMES.forEach(function(t){ th += '<th>'+t+'</th>'; });
+    th += '</tr></thead>';
+    var tb = '<tbody>';
+    rows.forEach(function(r){
+      tb += '<tr><td class="tname">'+r[0]+'</td><td class="troom">'+r[1]+'</td>';
+      for (var i=0;i<TIMES.length;i++){
+        var c = r[2][i];
+        if (c){ var g=GRADE[c[0]]||{bg:'#eee',ink:'#333'};
+          tb += '<td><span class="cell" style="background:'+g.bg+';color:'+g.ink+'"><span class="gr">'+c[0]+'</span>'+c[1]+'<span class="mm">('+c[2]+')</span></span></td>';
+        } else tb += '<td></td>';
+      }
+      tb += '</tr>';
+    });
+    tb += '</tbody>';
+    var cnt = rows.reduce(function(a,r){ return a+Object.keys(r[2]).length; },0);
+    return '<div class="sheet"><div class="head">'
+      + '<div class="legend"><span class="lg">年級</span>'
+      + '<span class="chip" style="background:'+GRADE[3].bg+';color:'+GRADE[3].ink+'">3</span>'
+      + '<span class="chip" style="background:'+GRADE[4].bg+';color:'+GRADE[4].ink+'">4</span>'
+      + '<span class="chip" style="background:'+GRADE[5].bg+';color:'+GRADE[5].ink+'">5</span>'
+      + '<span class="chip" style="background:'+GRADE[6].bg+';color:'+GRADE[6].ink+'">6</span></div>'
+      + '<div class="school">'+SCHOOL+'</div>'
+      + '<div class="ttl">個別樂器課程總表</div>'
+      + '<div class="sub">'+TERM.year+' 學年度第 '+TERM.term+' 學期　·　星期'+day
+      + '　（上學期 '+COUNTS.up+' 堂課）（下學期 '+COUNTS.down+' 堂課）</div>'
+      + '</div><table>'+th+tb+'</table>'
+      + '<div class="foot"><span>本日合計 '+cnt+' 堂</span><span>製表:教務處　'+new Date().toLocaleDateString('zh-TW')+'</span></div></div>';
+  }
+
+  function render() {
+    paramsLine();
+    var html='';
+    DAY_ORDER.forEach(function(d){ if (WEEK[d] && WEEK[d].length) html += buildSheet(d, WEEK[d]); });
+    document.getElementById('sheets').innerHTML = html;
+  }
+  render();
+
+  // ===== 匯出(樣板示範,正式版同樣保留) =====
+  function dl(name, text, type){ var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},0); }
+  function rowsForDay(d){ var out=[]; (WEEK[d]||[]).forEach(function(r){ var line=[r[0], r[1]]; for(var i=0;i<TIMES.length;i++){ var c=r[2][i]; line.push(c? (c[0]+' '+c[1]+'('+c[2]+')') : ''); } out.push(line); }); return out; }
+  function header(){ return ['樂器指導老師','上課琴房'].concat(TIMES); }
+  function exportXLS(){
+    var esc=function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';};
+    var lines=[];
+    DAY_ORDER.forEach(function(d){ if(!WEEK[d]||!WEEK[d].length) return;
+      lines.push(esc(SCHOOL+'  個別樂器課程總表  星期'+d));
+      lines.push(header().map(esc).join(','));
+      rowsForDay(d).forEach(function(r){ lines.push(r.map(esc).join(',')); });
+      lines.push('');
+    });
+    dl('個別樂器課程總表.csv','﻿'+lines.join('\r\n'),'text/csv;charset=utf-8');
+  }
+  function exportDOC(){
+    var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>table{border-collapse:collapse}td,th{border:1px solid #444;padding:4px 6px;font-family:sans-serif;font-size:12px;text-align:center}</style></head><body>';
+    DAY_ORDER.forEach(function(d){ if(!WEEK[d]||!WEEK[d].length) return;
+      html += '<h3 style="font-family:sans-serif">'+SCHOOL+'　個別樂器課程總表　星期'+d+'</h3>';
+      html += '<table><tr>'+header().map(function(x){return '<th style="background:#2A2740;color:#fff">'+x+'</th>';}).join('')+'</tr>';
+      rowsForDay(d).forEach(function(r){ html += '<tr>'+r.map(function(x,i){return '<td'+(i===0?' style="text-align:left"':'')+'>'+(x||'')+'</td>';}).join('')+'</tr>'; });
+      html += '</table><br>';
+    });
+    html += '</body></html>';
+    dl('個別樂器課程總表.doc','﻿'+html,'application/msword');
+  }
+</script>
+
+</body>
+</html>
