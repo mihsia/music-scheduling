@@ -14,7 +14,7 @@
 
   var STORAGE_KEY = "music-scheduling/db";
   var AUTH_KEY = "music-scheduling/authed"; // 曾登入記號,避免換頁時閃登入卡
-  var VERSION = 1;
+  var VERSION = 2; // 版本號提升 → 強制舊瀏覽器快取重新載入最新種子資料
   var TERM = "114-1"; // 114 學年度第 1 學期
   var COLLS = ["teachers", "students", "rooms", "bookings"];
 
@@ -223,7 +223,8 @@
   function saveLocal() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch (e) {} }
 
   db = loadLocal();
-  if (!db || typeof db !== "object") {
+  if (!db || typeof db !== "object" || db.version !== VERSION) {
+    // 版本不符(瀏覽器仍存著舊種子資料)→ 直接改用最新種子資料,避免使用者看到舊的示範資料
     db = clone(SEED); saveLocal();
   } else {
     COLLS.forEach(function (c) { if (!Array.isArray(db[c])) db[c] = clone(SEED[c]); });
