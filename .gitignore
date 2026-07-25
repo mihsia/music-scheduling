@@ -1,0 +1,4 @@
+.thumbnail
+.DS_Store
+.fuse_hidden*
+deploy_to_github.command

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./store.js?v=8"></script>
+<script src="./support.js?v=8"></script>
+<script src="./nav.js?v=8" defer></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #D9D3E6; border-radius: 6px; }
+  input[type=range]{ -webkit-appearance:none; height:6px; border-radius:5px; background:#E7E2F0; outline:none; }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#6D54E8; cursor:pointer; box-shadow:0 2px 6px rgba(109,84,232,.5); border:3px solid #fff; }
+  select{ font-family:inherit; }
+  @keyframes slideUp { 0% { transform: translateY(10px); opacity:0; } 100% { transform: translateY(0); opacity:1; } }
+</style>
+</helmet>
+<div style="font-family:'Fredoka','Noto Sans TC',sans-serif; background:#FAF7F3; color:#2A2740; height:100vh; display:flex; overflow:hidden;">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside style="width:226px; flex:none; background:#2A2740; color:#fff; display:flex; flex-direction:column; padding:22px 16px;">
+    <div style="display:flex; align-items:center; gap:11px; padding:4px 8px 22px;">
+      <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6D54E8,#C25BD6);display:flex;align-items:center;justify-content:center;font-size:20px;">♪</div>
+      <div><div style="font-size:17px;font-weight:700;letter-spacing:.5px;">樂排</div><div style="font-size:11px;opacity:.55;">音樂班排課系統</div></div>
+    </div>
+    <div style="font-size:11px; opacity:.4; letter-spacing:1px; padding:6px 10px;">主選單</div>
+    <nav style="display:flex; flex-direction:column; gap:3px; margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📊<span>總覽 Dashboard</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎻<span>外聘老師</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎒<span>學生資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🚪<span>琴房資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📚<span>班級課表</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;font-size:14px;font-weight:600;background:linear-gradient(135deg,#6D54E8,#9A4FE0);box-shadow:0 6px 16px rgba(109,84,232,.4);cursor:pointer;">⚙️<span>排課原則</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎼<span>排課工作台</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📈<span>報表中心</span></div>
+    </nav>
+    <div style="margin-top:auto; display:flex; align-items:center; gap:10px; padding:11px; background:rgba(255,255,255,.07); border-radius:14px;">
+      <div style="width:34px;height:34px;border-radius:50%;background:#9A4FE0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">王</div>
+      <div style="line-height:1.3;"><div style="font-size:13px;font-weight:600;">王主任</div><div style="font-size:11px;opacity:.55;">教務管理者</div></div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+    <header style="flex:none; padding:18px 30px; background:#fff; border-bottom:1px solid #EDE8F2;">
+      <div style="font-size:12px; color:#9A93AC; margin-bottom:3px;">排課設定 · 規則將套用於排課工作台的即時檢查</div>
+      <h1 style="margin:0; font-size:22px; font-weight:700;">⚙️ 排課原則設定</h1>
+    </header>
+
+    <div style="flex:1; display:flex; gap:22px; padding:24px 30px; overflow:hidden;">
+      <div style="flex:1; overflow-y:auto; padding-right:6px; padding-bottom:20px;">
+        {{ settings }}
+      </div>
+      <div style="width:300px; flex:none;">
+        {{ summary }}
+      </div>
+    </div>
+  </main>
+  {{ toast }}
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    courseLen: 45,
+    buffer: 10,
+    dayStart: '08:00',
+    dayEnd: '17:00',
+    chkTeacher: 'block',
+    chkRoom: 'block',
+    chkClass: 'block',
+    noConsecutive: true,
+    noSameDay: false,
+    maxPerDay: 2,
+    avoidLunch: true,
+    lunchStart: '12:00',
+    lunchEnd: '13:00',
+    blocks: [
+      { id:'b1', label:'週三 社團活動', time:'15:00–17:00', on:true },
+      { id:'b2', label:'每日 升旗 / 早自習', time:'07:50–08:10', on:true },
+      { id:'b3', label:'週五 班會', time:'15:10–16:00', on:false },
+    ],
+    majorFirst: true,
+    autoFill: true,
+    autoSuggest: true,
+    saved: false,
+  };
+
+  // 課程基本設定(課長/緩衝/時段)已移至「系統設定」頁,這裡只管排課規則
+  RULE_KEYS = ['chkTeacher','chkRoom','chkClass',
+    'noConsecutive','noSameDay','maxPerDay','avoidLunch','lunchStart','lunchEnd','blocks',
+    'majorFirst','autoFill','autoSuggest'];
+
+  // ---- 從共享資料層載入既有規則 ----
+  componentDidMount() {
+    const r = AppStore.getRules();
+    const patch = {};
+    this.RULE_KEYS.forEach(k => { if (r[k] !== undefined) patch[k] = r[k]; });
+    this.setState(patch);
+  }
+
+  set(k, v) { this.setState({ [k]:v, saved:false }); }
+  toggle(k) { this.setState(p => ({ [k]:!p[k], saved:false })); }
+  toggleBlock(id) { this.setState(p => ({ blocks:p.blocks.map(b=>b.id===id?{...b,on:!b.on}:b), saved:false })); }
+  save() {
+    const rules = {};
+    this.RULE_KEYS.forEach(k => { rules[k] = this.state[k]; });
+    AppStore.setRules(rules);   // 永久保存(合併),排課工作台即時引用
+    this.setState({ saved:true });
+    clearTimeout(this._t);
+    this._t = setTimeout(()=>this.setState({ saved:false }), 2800);
+  }
+
+  renderVals() {
+    const h = React.createElement;
+    const st = this.state;
+
+    // ---- shared controls ----
+    const Switch = (on, onClick) => h('button', { onClick, style:{ cursor:'pointer', border:'none', flex:'none', width:46, height:27, borderRadius:999, padding:0, position:'relative', transition:'background .2s', background: on?'#6D54E8':'#D8D3E2' } },
+      h('span', { style:{ position:'absolute', top:3, left: on?22:3, width:21, height:21, borderRadius:'50%', background:'#fff', transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.2)' } }));
+
+    const seg = (val, opts, onPick, colors) => h('div', { style:{ display:'inline-flex', background:'#F1EEF6', borderRadius:11, padding:4, gap:3 } },
+      opts.map(o => {
+        const on = val===o.v;
+        const c = colors && colors[o.v];
+        return h('button', { key:o.v, onClick:()=>onPick(o.v), style:{ cursor:'pointer', border:'none', fontFamily:'inherit', fontSize:13, fontWeight:600, padding:'7px 15px', borderRadius:8,
+          background: on?(c||'#6D54E8'):'transparent', color: on?'#fff':'#9A93AC', transition:'all .15s' } }, o.t);
+      }));
+
+    const row = (icon, title, desc, control, key) => h('div', { key, style:{ display:'flex', alignItems:'center', gap:14, padding:'15px 4px', borderBottom:'1px solid #F2EFF6' } },
+      h('div', { style:{ width:38,height:38,borderRadius:11,background:'#F4F1FB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flex:'none' } }, icon),
+      h('div', { style:{ flex:1, minWidth:0 } },
+        h('div', { style:{ fontSize:14.5, fontWeight:600 } }, title),
+        h('div', { style:{ fontSize:12.5, color:'#9A93AC', marginTop:3, lineHeight:1.5 } }, desc)),
+      h('div', { style:{ flex:'none' } }, control));
+
+    const card = (title, sub, rows) => h('div', { style:{ background:'#fff', border:'1px solid #ECE7F2', borderRadius:18, padding:'18px 22px', marginBottom:18, boxShadow:'0 4px 16px rgba(40,30,70,.04)' } },
+      h('div', { style:{ marginBottom:6 } },
+        h('div', { style:{ fontSize:15.5, fontWeight:700, display:'flex', alignItems:'center', gap:9 } }, h('span',{style:{width:5,height:18,borderRadius:3,background:'#6D54E8',display:'inline-block'}}), title),
+        sub?h('div',{style:{fontSize:12.5,color:'#9A93AC',marginTop:5,marginLeft:14}},sub):null),
+      h('div', null, rows));
+
+    const timeSel = (key, val) => h('select', { value:val, onChange:e=>this.set(key,e.target.value), style:{ border:'1px solid #E2DCEC', borderRadius:9, padding:'8px 10px', fontSize:13.5, color:'#2A2740', background:'#fff', cursor:'pointer', fontFamily:'Fredoka' } },
+      ['07:30','07:50','08:00','08:10','11:00','11:30','12:00','12:30','13:00','13:10','15:00','16:00','16:10','17:00','17:30','18:00'].map(t=>h('option',{key:t,value:t},t)));
+
+    const conflictOpts = [{v:'block',t:'阻擋'},{v:'warn',t:'警告'},{v:'off',t:'不檢查'}];
+    const conflictColors = { block:'#E23A68', warn:'#E0892B', off:'#9A93AC' };
+
+    // ===== sections =====
+    const sections = h('div', null,
+
+      card('衝突檢查規則', '排課時系統會即時比對以下條件,可分別設定違規時的處理方式', [
+        row('⏰','配合老師開課時間','僅能排在老師有開課且未被占用的時段',
+          seg(st.chkTeacher,conflictOpts,v=>this.set('chkTeacher',v),conflictColors),'k1'),
+        row('🚪','琴房場地占用','同一琴房同時段不可重複使用',
+          seg(st.chkRoom,conflictOpts,v=>this.set('chkRoom',v),conflictColors),'k2'),
+        row('📚','避開班級正課','不可與學生所屬班級的正課時間衝突',
+          seg(st.chkClass,conflictOpts,v=>this.set('chkClass',v),conflictColors),'k3'),
+      ]),
+
+      card('學生個別課原則', '針對單一學生的排課限制', [
+        row('🔁','主副修不連排','同一學生的主修與副修不安排在相鄰節次',
+          Switch(st.noConsecutive,()=>this.toggle('noConsecutive')),'s1'),
+        row('📅','主副修不排同一天','主修與副修分散在不同日',
+          Switch(st.noSameDay,()=>this.toggle('noSameDay')),'s2'),
+        row('🔢','每日個別課上限','單一學生每天最多可排的個別課堂數',
+          h('div',{style:{display:'flex',alignItems:'center',gap:14,width:200}},
+            h('input',{type:'range',min:1,max:3,step:1,value:st.maxPerDay,onChange:e=>this.set('maxPerDay',+e.target.value),style:{flex:1}}),
+            h('span',{style:{fontSize:14,fontWeight:700,color:'#6D54E8',fontFamily:'Fredoka',width:48,textAlign:'right'}},st.maxPerDay+' 堂')),'s3'),
+      ]),
+
+      card('時段限制', '系統性封鎖、不開放排課的時段', [
+        row('🍱','避開午休時段','午休時間不排個別課',
+          h('div',{style:{display:'flex',alignItems:'center',gap:10}},
+            st.avoidLunch?h('div',{style:{display:'flex',alignItems:'center',gap:8}}, timeSel('lunchStart',st.lunchStart), h('span',{style:{color:'#9A93AC'}},'—'), timeSel('lunchEnd',st.lunchEnd)):null,
+            Switch(st.avoidLunch,()=>this.toggle('avoidLunch'))),'l1'),
+        h('div',{key:'blkhdr',style:{fontSize:13,fontWeight:600,color:'#6E6A86',padding:'15px 4px 8px'}},'自訂封鎖時段'),
+        ...st.blocks.map(b => h('div',{key:b.id,style:{display:'flex',alignItems:'center',gap:12,padding:'11px 14px',background:b.on?'#FBF7FF':'#FAF8FC',border:'1px solid '+(b.on?'#E9DEF8':'#F0EDF4'),borderRadius:12,marginBottom:8}},
+          h('span',{style:{fontSize:15}},'🚫'),
+          h('div',{style:{flex:1}},
+            h('div',{style:{fontSize:13.5,fontWeight:600,color:b.on?'#2A2740':'#9A93AC'}},b.label),
+            h('div',{style:{fontSize:12,color:'#9A93AC',marginTop:2,fontFamily:'Fredoka'}},b.time)),
+          Switch(b.on,()=>this.toggleBlock(b.id)))),
+        h('button',{key:'addblk',style:{cursor:'pointer',width:'100%',border:'1.5px dashed #D3CBE6',background:'#fff',color:'#6D54E8',fontFamily:'inherit',fontSize:13,fontWeight:600,padding:'11px',borderRadius:12,marginTop:2}},'＋ 新增封鎖時段'),
+      ]),
+
+      card('排課偏好', '自動排課與建議行為', [
+        row('⭐','主修優先排課','批次排課時先安排主修課,再排副修',
+          Switch(st.majorFirst,()=>this.toggle('majorFirst')),'p1'),
+        row('🪄','自動建議空堂','排課時主動標示三方都可用的時段',
+          Switch(st.autoFill,()=>this.toggle('autoFill')),'p2'),
+        row('💡','衝突時建議替代時段','發生衝突時自動推薦最接近的可行時段',
+          Switch(st.autoSuggest,()=>this.toggle('autoSuggest')),'p3'),
+      ]),
+    );
+
+    // ===== summary =====
+    const lenTxt = st.courseLen+' 分鐘';
+    const chkLabel = v => v==='block'?'阻擋':v==='warn'?'警告':'關閉';
+    const chkColor = v => v==='block'?'#1FAE8B':v==='warn'?'#E0892B':'#9A93AC';
+    const activeBlocks = st.blocks.filter(b=>b.on).length + (st.avoidLunch?1:0);
+    const sumRow = (label, val, color) => h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,.1)'}},
+      h('span',{style:{fontSize:12.5,opacity:.7}},label), h('span',{style:{fontSize:13,fontWeight:600,color:color||'#fff'}},val));
+
+    const summary = h('div',{style:{position:'sticky',top:0,display:'flex',flexDirection:'column',gap:16}},
+      h('div',{style:{background:'#2A2740',color:'#fff',borderRadius:20,padding:'22px 20px'}},
+        h('div',{style:{fontSize:13,opacity:.6,letterSpacing:1,marginBottom:4}},'目前規則摘要'),
+        h('div',{style:{fontSize:18,fontWeight:700,marginBottom:14}},'即時套用於排課'),
+        sumRow('每堂課長', lenTxt),
+        sumRow('課間緩衝', st.buffer+' 分'),
+        sumRow('可排時段', st.dayStart+'–'+st.dayEnd),
+        sumRow('老師時間檢查', chkLabel(st.chkTeacher), chkColor(st.chkTeacher)),
+        sumRow('琴房占用檢查', chkLabel(st.chkRoom), chkColor(st.chkRoom)),
+        sumRow('班級正課檢查', chkLabel(st.chkClass), chkColor(st.chkClass)),
+        sumRow('主副修不連排', st.noConsecutive?'啟用':'關閉', st.noConsecutive?'#3FD0A8':'#9A93AC'),
+        sumRow('每日上限', st.maxPerDay+' 堂'),
+        sumRow('封鎖時段', activeBlocks+' 項'),
+        h('div',{style:{display:'flex',justifycontent:'space-between',justifyContent:'space-between',alignItems:'center',padding:'9px 0 0'}},
+          h('span',{style:{fontSize:12.5,opacity:.7}},'主修優先'), h('span',{style:{fontSize:13,fontWeight:600,color:st.majorFirst?'#3FD0A8':'#9A93AC'}},st.majorFirst?'啟用':'關閉'))
+      ),
+      h('button',{onClick:()=>this.save(),style:{cursor:'pointer',border:'none',fontFamily:'inherit',fontSize:15,fontWeight:700,color:'#fff',padding:'15px',borderRadius:15,background:'linear-gradient(135deg,#6D54E8,#9A4FE0)',boxShadow:'0 8px 20px rgba(109,84,232,.35)'}},'💾 儲存設定'),
+      h('div',{style:{fontSize:11.5,color:'#9A93AC',textAlign:'center',lineHeight:1.6}},'儲存後立即套用,排課工作台即時生效')
+    );
+
+    const toast = st.saved ? h('div',{style:{position:'fixed',bottom:26,left:'50%',transform:'translateX(-50%)',background:'#2A2740',color:'#fff',padding:'14px 24px',borderRadius:14,boxShadow:'0 12px 30px rgba(40,30,70,.3)',display:'flex',alignItems:'center',gap:11,zIndex:50,animation:'slideUp .3s ease'}},
+      h('span',{style:{width:28,height:28,borderRadius:'50%',background:'#1FAE8B',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}},'✓'),
+      h('div',null,h('div',{style:{fontSize:14,fontWeight:700}},'排課原則已儲存'),h('div',{style:{fontSize:12,opacity:.7}},'已儲存,排課工作台即時生效'))) : null;
+
+    return { settings:sections, summary, toast };
+  }
+}
+</script>
+</body>
+</html>

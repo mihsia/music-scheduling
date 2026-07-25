@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./store.js?v=8"></script>
+<script src="./support.js?v=8"></script>
+<script src="./nav.js?v=8" defer></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #D9D3E6; border-radius: 6px; }
+  @keyframes pop { 0% { transform: scale(.96); opacity:0; } 100% { transform: scale(1); opacity:1; } }
+  @keyframes slideUp { 0% { transform: translateY(10px); opacity:0; } 100% { transform: translateY(0); opacity:1; } }
+</style>
+</helmet>
+<div style="font-family:'Fredoka','Noto Sans TC',sans-serif; background:#FAF7F3; color:#2A2740; height:100vh; display:flex; overflow:hidden;">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside style="width:226px; flex:none; background:#2A2740; color:#fff; display:flex; flex-direction:column; padding:22px 16px;">
+    <div style="display:flex; align-items:center; gap:11px; padding:4px 8px 22px;">
+      <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6D54E8,#C25BD6);display:flex;align-items:center;justify-content:center;font-size:20px;">♪</div>
+      <div><div style="font-size:17px;font-weight:700;letter-spacing:.5px;">樂排</div><div style="font-size:11px;opacity:.55;">音樂班排課系統</div></div>
+    </div>
+    <div style="font-size:11px; opacity:.4; letter-spacing:1px; padding:6px 10px;">主選單</div>
+    <nav style="display:flex; flex-direction:column; gap:3px; margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📊<span>總覽 Dashboard</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎻<span>外聘老師</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎒<span>學生資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🚪<span>琴房資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📚<span>班級課表</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">⚙️<span>排課原則</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;font-size:14px;font-weight:600;background:linear-gradient(135deg,#6D54E8,#9A4FE0);box-shadow:0 6px 16px rgba(109,84,232,.4);cursor:pointer;">🎼<span>排課工作台</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📈<span>報表中心</span></div>
+    </nav>
+    <div style="margin-top:auto; display:flex; align-items:center; gap:10px; padding:11px; background:rgba(255,255,255,.07); border-radius:14px;">
+      <div style="width:34px;height:34px;border-radius:50%;background:#9A4FE0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">王</div>
+      <div style="line-height:1.3;"><div style="font-size:13px;font-weight:600;">王主任</div><div style="font-size:11px;opacity:.55;">教務管理者</div></div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+    <header style="flex:none; padding:18px 28px; background:#fff; border-bottom:1px solid #EDE8F2; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div style="font-size:12px; color:#9A93AC; margin-bottom:3px;">排課作業 · 114 學年度第 1 學期</div>
+        <h1 style="margin:0; font-size:22px; font-weight:700;">🎼 排課工作台</h1>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:7px; font-size:13px; color:#1FAE8B; background:#E7FBF3; padding:8px 14px; border-radius:11px; font-weight:500;"><span style="width:8px;height:8px;border-radius:50%;background:#1FAE8B;display:inline-block;"></span>已自動儲存</div>
+        <div style="display:flex; align-items:center; gap:7px; font-size:13px; color:#6E6A86; background:#F4F1FB; padding:8px 14px; border-radius:11px;">114-1 學期 ▾</div>
+      </div>
+    </header>
+
+    <div style="flex:1; display:flex; gap:20px; padding:22px 28px; overflow:hidden;">
+
+      <!-- LEFT : WIZARD -->
+      <section style="width:380px; flex:none; display:flex; flex-direction:column; gap:16px; overflow-y:auto; padding-right:4px;">
+
+        <!-- step 1 -->
+        <div style="background:#fff; border:1px solid #ECE7F2; border-radius:18px; padding:18px; box-shadow:0 4px 16px rgba(40,30,70,.04);">
+          <div style="display:flex; align-items:center; gap:9px; margin-bottom:13px;">
+            <span style="width:24px;height:24px;border-radius:8px;background:#6D54E8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">1</span>
+            <span style="font-size:15px; font-weight:700;">選樂器組別與老師</span>
+          </div>
+          {{ teacherChips }}
+          {{ teacherList }}
+        </div>
+
+        <!-- step 2 -->
+        <div style="background:#fff; border:1px solid #ECE7F2; border-radius:18px; padding:18px; box-shadow:0 4px 16px rgba(40,30,70,.04);">
+          <div style="display:flex; align-items:center; gap:9px; margin-bottom:13px;">
+            <span style="width:24px;height:24px;border-radius:8px;background:#6D54E8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">2</span>
+            <span style="font-size:15px; font-weight:700;">選學生</span>
+          </div>
+          {{ studentList }}
+        </div>
+
+        <!-- step 3 room -->
+        <div style="background:#fff; border:1px solid #ECE7F2; border-radius:18px; padding:18px; box-shadow:0 4px 16px rgba(40,30,70,.04);">
+          <div style="display:flex; align-items:center; gap:9px; margin-bottom:13px;">
+            <span style="width:24px;height:24px;border-radius:8px;background:#6D54E8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">3</span>
+            <span style="font-size:15px; font-weight:700;">選琴房,再到右側點選時段</span>
+          </div>
+          {{ roomChips }}
+        </div>
+      </section>
+
+      <!-- RIGHT : WEEK GRID + ACTION -->
+      <section style="flex:1; display:flex; flex-direction:column; gap:16px; overflow:hidden;">
+        <div style="flex:1; background:#fff; border:1px solid #ECE7F2; border-radius:18px; padding:18px 20px; box-shadow:0 4px 16px rgba(40,30,70,.04); display:flex; flex-direction:column; overflow:hidden;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <div style="font-size:15px; font-weight:700;">週課表 — 點選空堂排入</div>
+            <div style="display:flex; gap:14px; font-size:11.5px; color:#6E6A86;">
+              <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:3px;background:#E9F7F1;border:1px solid #B7E6D5;"></span>可排</span>
+              <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:3px;background:#EDE9F6;"></span>已排</span>
+              <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:3px;background:#F3F1F6;"></span>未開課</span>
+              <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:3px;background:#FFE2EC;border:1px solid #F5B6CC;"></span>衝突</span>
+            </div>
+          </div>
+          <div style="flex:1; overflow:auto;">
+            {{ weekGrid }}
+          </div>
+        </div>
+        {{ actionBar }}
+      </section>
+    </div>
+  </main>
+
+  {{ toast }}
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    group: 'strings',
+    teacherId: 't1',
+    studentId: null,
+    roomId: 'A101',
+    cell: null,        // {day, k}
+    bookings: [],      // 由 store.js 載入並保存
+    toast: null,
+  };
+
+  // ---- 與共享資料層 store.js 連動 ----
+  componentDidMount() {
+    this._unsub = AppStore.subscribe(() => this.setState({ bookings: AppStore.bookings() }));
+    const ts = AppStore.schedulingTeachers();
+    const patch = { bookings: AppStore.bookings() };
+    // 若預設老師已被停用/刪除,改選目前組別的第一位
+    if (!ts.find(t => t.id === this.state.teacherId)) {
+      const first = ts.find(t => t.group === this.state.group) || ts[0];
+      if (first) { patch.teacherId = first.id; patch.group = first.group; }
+    }
+    this.setState(patch);
+  }
+  componentWillUnmount() { if (this._unsub) this._unsub(); }
+
+  GROUPS = {
+    strings: { bg:'#FF8E63', soft:'#FFEDE4', ink:'#C2502A', label:'弦樂', icon:'🎻' },
+    piano:   { bg:'#F2B33C', soft:'#FFF3DC', ink:'#A9741A', label:'鋼琴', icon:'🎹' },
+    winds:   { bg:'#3FD0A8', soft:'#DEF7EF', ink:'#1E8A6C', label:'管樂', icon:'🎺' },
+    perc:    { bg:'#FF6FB5', soft:'#FFE5F1', ink:'#C23B82', label:'擊樂', icon:'🥁' },
+  };
+
+  // 老師 / 學生 / 琴房改由共享資料層即時提供(於「資料庫管理」頁編輯後立即反映)
+  get TEACHERS() { return AppStore.schedulingTeachers(); }
+  get STUDENTS() { return AppStore.schedulingStudents(); }
+  get ROOMS()    { return AppStore.schedulingRooms(); }
+
+  DAYS = ['一','二','三','四','五'];
+  PERIODS = [
+    { k:'p1', label:'1', time:'08:10' },
+    { k:'p2', label:'2', time:'09:10' },
+    { k:'p3', label:'3', time:'10:10' },
+    { k:'p4', label:'4', time:'11:10' },
+    { k:'lunch', label:'午', time:'12:00', lunch:true },
+    { k:'p6', label:'5', time:'13:10' },
+    { k:'p7', label:'6', time:'14:10' },
+    { k:'p8', label:'7', time:'15:10' },
+    { k:'p9', label:'8', time:'16:10' },
+  ];
+
+  teacher() { return this.TEACHERS.find(t => t.id === this.state.teacherId); }
+  student() { return this.STUDENTS.find(s => s.id === this.state.studentId); }
+  adj(k){ const o=['p1','p2','p3','p4','p6','p7','p8','p9']; const i=o.indexOf(k); return [o[i-1],o[i+1]].filter(Boolean); }
+
+  // returns {state:'closed'|'free'|'booked', booking?}
+  cellStatus(day, k) {
+    const t = this.teacher();
+    const open = t && t.open[day] && t.open[day].includes(k);
+    const booking = this.state.bookings.find(b => b.day===day && b.k===k && b.teacherId===this.state.teacherId);
+    if (booking) return { state:'booked', booking };
+    if (!open) return { state:'closed' };
+    return { state:'free' };
+  }
+
+  // conflict check for candidate cell（依「排課原則設定」即時調整）
+  check(day, k) {
+    const msgs = [];
+    const rules = AppStore.getRules();
+    // setting 為 'block' / 'warn' / 'off'
+    const lv = (setting, text) => { if (setting === 'off') return; msgs.push([setting === 'warn' ? 'warn' : 'block', text]); };
+    const t = this.teacher(), s = this.student();
+    const p = this.PERIODS.find(x => x.k===k);
+    if (p && p.lunch && rules.avoidLunch) msgs.push(['block','午休時段,排課原則設定為不排課']);
+    const st = this.cellStatus(day, k);
+    if (st.state === 'closed') lv(rules.chkTeacher, '老師此時段未開課');
+    if (st.state === 'booked') lv(rules.chkTeacher, '老師此時段已有課（'+st.booking.student+'）');
+    // room
+    const roomBusy = this.state.bookings.find(b => b.day===day && b.k===k && b.room===this.state.roomId);
+    if (roomBusy) lv(rules.chkRoom, '琴房 '+this.state.roomId+' 已被占用（'+roomBusy.student+'）');
+    // student class
+    if (s && s.cls[day] && s.cls[day].includes(k)) lv(rules.chkClass, '與「'+s.klass+'」班級正課衝突');
+    // student already booked same slot（物理衝突,一律阻擋）
+    if (s) {
+      const sBusy = this.state.bookings.find(b => b.day===day && b.k===k && b.student===s.name);
+      if (sBusy) msgs.push(['block','學生此時段已有個別課']);
+      // no consecutive
+      if (rules.noConsecutive) {
+        const adjBusy = this.adj(k).some(ak => this.state.bookings.find(b => b.day===day && b.k===ak && b.student===s.name));
+        if (adjBusy) msgs.push(['warn','違反「主副修不連排」原則（前後堂已有課）']);
+      }
+      // 主副修不排同一天
+      if (rules.noSameDay) {
+        const sameDay = this.state.bookings.find(b => b.day===day && b.student===s.name);
+        if (sameDay) msgs.push(['warn','違反「主副修不排同一天」原則（本日已有課）']);
+      }
+      // 每日個別課上限
+      if (rules.maxPerDay) {
+        const cntDay = this.state.bookings.filter(b => b.day===day && b.student===s.name).length;
+        if (cntDay >= rules.maxPerDay) msgs.push(['block','已達每日個別課上限（'+rules.maxPerDay+' 堂）']);
+      }
+    }
+    // 封鎖時段（排課原則設定中開啟的時段）
+    if (p && p.time && Array.isArray(rules.blocks)) {
+      const toMin = (hm) => { const m=/^(\d{1,2}):(\d{2})$/.exec((hm||'').trim()); return m ? (+m[1])*60+(+m[2]) : null; };
+      const cm = toMin(p.time);
+      rules.blocks.filter(bk => bk.on).forEach(bk => {
+        const mm = /(\d{1,2}:\d{2}).*?(\d{1,2}:\d{2})/.exec(bk.time || '');
+        if (mm && cm!=null) { const a=toMin(mm[1]), b=toMin(mm[2]); if (a!=null && b!=null && cm>=a && cm<b) msgs.push(['block','落在封鎖時段：'+bk.label]); }
+      });
+    }
+    const blocked = msgs.some(m => m[0]==='block');
+    const warned = msgs.some(m => m[0]==='warn');
+    return { ok: !blocked, blocked, warned, msgs };
+  }
+
+  pickCell(day, k) { this.setState({ cell:{day,k} }); }
+
+  confirm() {
+    const c = this.state.cell; if (!c) return;
+    const s = this.student(); if (!s) return;
+    const r = this.check(c.day, c.k); if (r.blocked) return;
+    const t = this.teacher();
+    const type = (s.major.g===t.group) ? '主修' : '副修';
+    const room = this.state.roomId;
+    // 寫入共享資料層並永久保存(bookings 會經 subscribe 回填到 state)
+    AppStore.addBooking({ day:c.day, k:c.k, teacherId:t.id, studentId:s.id, student:s.name, room, type, term:AppStore.TERM });
+    this.setState({
+      cell: null,
+      toast: { name:s.name, slot:'週'+c.day+' '+(this.PERIODS.find(x=>x.k===c.k)||{}).time, room }
+    });
+    clearTimeout(this._tt);
+    this._tt = setTimeout(() => this.setState({ toast:null }), 3200);
+  }
+
+  removeBooking(b) {
+    if (!b || !b.id) return;
+    const slot = '週'+b.day+' '+((this.PERIODS.find(x=>x.k===b.k)||{}).time||'');
+    if (typeof window !== 'undefined' && window.confirm &&
+        !window.confirm('確定移除 '+b.student+' 於 '+slot+' 的個別課?')) return;
+    AppStore.removeBooking(b.id);
+    this.setState({ cell:null, toast:{ name:b.student, slot, room:b.room, removed:true } });
+    clearTimeout(this._tt);
+    this._tt = setTimeout(() => this.setState({ toast:null }), 3200);
+  }
+
+  renderVals() {
+    const h = React.createElement;
+    const G = this.GROUPS, st = this.state;
+    const t = this.teacher();
+    const s = this.student();
+
+    // ---- teacher chips ----
+    const chips = h('div', { style:{ display:'flex', gap:8, marginBottom:12 } },
+      Object.keys(G).map(g => {
+        const on = st.group===g;
+        return h('button', {
+          key:g,
+          onClick:() => this.setState({ group:g, teacherId:(this.TEACHERS.find(x=>x.group===g)||{}).id, cell:null }),
+          style:{ flex:1, cursor:'pointer', border:'none', borderRadius:12, padding:'9px 6px', fontFamily:'inherit',
+            fontSize:13, fontWeight:600, transition:'all .15s',
+            background: on ? G[g].bg : G[g].soft, color: on ? '#fff' : G[g].ink,
+            boxShadow: on ? '0 5px 14px '+G[g].bg+'66' : 'none' }
+        }, G[g].icon+' '+G[g].label);
+      })
+    );
+
+    // ---- teacher list ----
+    const tlist = h('div', { style:{ display:'flex', flexDirection:'column', gap:7 } },
+      this.TEACHERS.filter(x => x.group===st.group).map(x => {
+        const on = st.teacherId===x.id;
+        const openDays = Object.keys(x.open).map(d => '週'+d).join('、');
+        return h('div', { key:x.id, onClick:() => this.setState({ teacherId:x.id, cell:null }),
+          style:{ cursor:'pointer', border:'1.5px solid '+(on?G[x.group].bg:'#ECE7F2'), background: on?G[x.group].soft:'#fff',
+            borderRadius:13, padding:'11px 13px', display:'flex', alignItems:'center', gap:11, transition:'all .15s' } },
+          h('div', { style:{ width:36,height:36,borderRadius:10,flex:'none',background:G[x.group].bg,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,fontWeight:600 } }, x.name[0]),
+          h('div', { style:{ flex:1, minWidth:0 } },
+            h('div', { style:{ fontSize:14, fontWeight:700, display:'flex', alignItems:'center', gap:7 } }, x.name,
+              h('span', { style:{ fontSize:11, fontWeight:500, color:G[x.group].ink, background:G[x.group].soft, padding:'1px 7px', borderRadius:6 } }, x.instrument)),
+            h('div', { style:{ fontSize:11.5, color:'#9A93AC', marginTop:3 } }, '開課 '+openDays)
+          ),
+          on ? h('div', { style:{ width:20,height:20,borderRadius:'50%',background:G[x.group].bg,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12 } }, '✓') : null
+        );
+      })
+    );
+
+    // ---- student list (filtered by teacher group via major/minor) ----
+    const avail = this.STUDENTS.filter(x => t && (x.major.g===t.group || x.minor.g===t.group));
+    const slist = avail.length ? h('div', { style:{ display:'flex', flexDirection:'column', gap:7 } },
+      avail.map(x => {
+        const on = st.studentId===x.id;
+        const isMajor = x.major.g===t.group;
+        const tag = isMajor ? x.major : x.minor;
+        return h('div', { key:x.id, onClick:() => this.setState({ studentId:x.id, cell:null }),
+          style:{ cursor:'pointer', border:'1.5px solid '+(on?'#6D54E8':'#ECE7F2'), background:on?'#F4F1FB':'#fff',
+            borderRadius:13, padding:'10px 13px', display:'flex', alignItems:'center', gap:11, transition:'all .15s' } },
+          h('div', { style:{ width:34,height:34,borderRadius:10,flex:'none',background:on?'#6D54E8':'#EDE9F6',color:on?'#fff':'#6E6A86',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:600 } }, x.name[0]),
+          h('div', { style:{ flex:1, minWidth:0 } },
+            h('div', { style:{ fontSize:14, fontWeight:700 } }, x.name, h('span', { style:{ fontSize:11.5, fontWeight:400, color:'#9A93AC', marginLeft:7 } }, x.klass)),
+            h('div', { style:{ fontSize:11, marginTop:4, display:'flex', gap:5 } },
+              h('span', { style:{ color:isMajor?'#fff':this.GROUPS[x.major.g].ink, background:isMajor?this.GROUPS[x.major.g].bg:this.GROUPS[x.major.g].soft, padding:'1px 7px', borderRadius:6, fontWeight:500 } }, '主修 '+x.major.i),
+              h('span', { style:{ color:!isMajor?'#fff':this.GROUPS[x.minor.g].ink, background:!isMajor?this.GROUPS[x.minor.g].bg:this.GROUPS[x.minor.g].soft, padding:'1px 7px', borderRadius:6, fontWeight:500 } }, '副修 '+x.minor.i)
+            )
+          ),
+          h('span', { style:{ fontSize:10.5, fontWeight:600, color:isMajor?this.GROUPS[t.group].ink:'#9A93AC' } }, isMajor?'此堂主修':'此堂副修')
+        );
+      })
+    ) : h('div', { style:{ fontSize:13, color:'#9A93AC', padding:'8px 2px' } }, '此組別暫無學生');
+
+    // ---- room chips ----
+    const rooms = h('div', { style:{ display:'flex', flexWrap:'wrap', gap:8 } },
+      this.ROOMS.map(r => {
+        const on = st.roomId===r.id;
+        return h('button', { key:r.id, onClick:() => this.setState({ roomId:r.id, cell:null }), style:{ cursor:'pointer', fontFamily:'inherit',
+          border:'1.5px solid '+(on?'#6D54E8':'#ECE7F2'), background:on?'#6D54E8':'#fff', color:on?'#fff':'#2A2740',
+          borderRadius:11, padding:'9px 14px', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:2, transition:'all .15s' } },
+          h('span', { style:{ fontSize:14, fontWeight:700 } }, '🚪 '+r.name),
+          h('span', { style:{ fontSize:10.5, opacity:on?.85:.6 } }, r.tag)
+        );
+      })
+    );
+
+    // ---- week grid ----
+    const cand = st.cell;
+    const candCheck = cand ? this.check(cand.day, cand.k) : null;
+    const colGrid = '46px repeat(5,1fr)';
+    const headRow = h('div', { style:{ display:'grid', gridTemplateColumns:colGrid, gap:5, marginBottom:5 } },
+      [h('div', { key:'c' }), ...this.DAYS.map(d =>
+        h('div', { key:d, style:{ textAlign:'center', fontSize:12.5, fontWeight:700, color:'#6E6A86', padding:'4px 0' } }, '週'+d))
+      ]);
+    const rows = this.PERIODS.map(p => {
+      const cells = this.DAYS.map(d => {
+        if (p.lunch) return h('div', { key:d, style:{ background:'#F6F4FA', borderRadius:8, minHeight:38, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, color:'#B8B2C6' } }, '午休');
+        const status = this.cellStatus(d, p.k);
+        const isCand = cand && cand.day===d && cand.k===p.k;
+        const sConflict = s && s.cls[d] && s.cls[d].includes(p.k);
+        let bg='#fff', bd='1px solid #EFECF4', content=null, color='#2A2740', cursor='default';
+        if (status.state==='booked') {
+          const gg = G[this.teacher().group];
+          bg=gg.soft; bd='1px solid '+gg.bg+'55'; cursor='pointer';
+          content = h('div', { style:{ lineHeight:1.25, position:'relative', width:'100%' } },
+            h('div', { style:{ fontSize:11.5, fontWeight:700, color:gg.ink } }, status.booking.student),
+            h('div', { style:{ fontSize:9.5, color:gg.ink, opacity:.8 } }, status.booking.room+' · '+status.booking.type),
+            h('div', { style:{ fontSize:8.5, color:gg.ink, opacity:.55, marginTop:1 } }, '點擊可移除'));
+        } else if (status.state==='closed') {
+          bg='#F7F5FA'; bd='1px solid #F0EEF4'; content=h('span',{style:{fontSize:11,color:'#C9C3D6'}},'–');
+        } else { // free
+          cursor='pointer';
+          if (sConflict) { bg='#FFF0F4'; bd='1px solid #F5C2D2'; content=h('span',{style:{fontSize:10,color:'#D86089',fontWeight:600}},'正課'); }
+          else { bg='#EBF9F2'; bd='1px solid #BDE8D6'; content=h('span',{style:{fontSize:14,color:'#5FBF99'}},'＋'); }
+        }
+        if (isCand) {
+          const ok = candCheck && candCheck.ok;
+          bg = ok ? '#6D54E8' : '#FF5B86';
+          bd = '2px solid '+(ok?'#5840c9':'#e23a68');
+          content = h('div', { style:{ color:'#fff', textAlign:'center' } },
+            h('div',{style:{fontSize:13,fontWeight:700}}, ok?'✓ 排入':'✕ 衝突'),
+            s? h('div',{style:{fontSize:9.5,opacity:.9}}, s.name):null);
+        }
+        const onClick = (status.state==='free'||isCand) ? () => this.pickCell(d, p.k)
+          : (status.state==='booked' ? () => this.removeBooking(status.booking) : undefined);
+        return h('div', { key:d, onClick,
+          style:{ background:bg, border:bd, borderRadius:8, minHeight:40, padding:'5px 6px', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', cursor, transition:'all .12s' } }, content);
+      });
+      return h('div', { key:p.k, style:{ display:'grid', gridTemplateColumns:colGrid, gap:5, marginBottom:5 } },
+        h('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'#9A93AC' } },
+          h('div',{style:{fontSize:13,fontWeight:700}}, p.lunch?'':p.label),
+          h('div',{style:{fontSize:9.5}}, p.time)),
+        ...cells);
+    });
+    const grid = h('div', null, headRow, ...rows);
+
+    // ---- action bar ----
+    const can = cand && s && candCheck && candCheck.ok;
+    let statusInner;
+    if (!s) statusInner = h('div', { style:{ fontSize:13.5, color:'#9A93AC' } }, '請先於左側選擇學生');
+    else if (!cand) statusInner = h('div', { style:{ fontSize:13.5, color:'#9A93AC' } }, '請於右側週課表點選一個空堂');
+    else statusInner = h('div', { style:{ display:'flex', flexDirection:'column', gap:5 } },
+      candCheck.msgs.length===0
+        ? h('div', { style:{ fontSize:13.5, fontWeight:600, color:'#1FAE8B', display:'flex', alignItems:'center', gap:7 } }, '✓ 四項條件全部通過,可以排入')
+        : candCheck.msgs.map((m,i) => h('div', { key:i, style:{ fontSize:12.5, fontWeight:500, display:'flex', alignItems:'center', gap:7,
+            color: m[0]==='block'?'#E23A68':'#E0892B' } }, (m[0]==='block'?'⛔':'⚠️')+' '+m[1]))
+    );
+    const summary = (cand && s && t) ? h('div', { style:{ fontSize:12.5, color:'#6E6A86', marginTop:7, paddingTop:9, borderTop:'1px dashed #ECE7F2' } },
+      h('b',{style:{color:'#2A2740'}}, t.name+' 老師'), ' × ', h('b',{style:{color:'#2A2740'}}, s.name),
+      ' ｜ 週'+cand.day+' '+((this.PERIODS.find(x=>x.k===cand.k)||{}).time)+' ｜ 琴房 '+st.roomId) : null;
+
+    const actionBar = h('div', { style:{ flex:'none', background:'#fff', border:'1px solid #ECE7F2', borderRadius:18, padding:'16px 20px', boxShadow:'0 4px 16px rgba(40,30,70,.04)', display:'flex', alignItems:'center', gap:18 } },
+      h('div', { style:{ flex:1 } },
+        h('div', { style:{ fontSize:11.5, fontWeight:600, color:'#9A93AC', letterSpacing:1, marginBottom:6 } }, '🛡️ 衝突檢查'),
+        statusInner, summary),
+      h('button', { onClick:() => can && this.confirm(), disabled:!can,
+        style:{ flex:'none', fontFamily:'inherit', cursor:can?'pointer':'not-allowed', border:'none', borderRadius:14, padding:'15px 30px', fontSize:15, fontWeight:700,
+          color:'#fff', background: can?'linear-gradient(135deg,#6D54E8,#9A4FE0)':'#D6D0E2',
+          boxShadow: can?'0 8px 20px rgba(109,84,232,.35)':'none', transition:'all .15s' } }, '確認排入 →')
+    );
+
+    // ---- toast ----
+    const removed = st.toast && st.toast.removed;
+    const toast = st.toast ? h('div', { style:{ position:'fixed', bottom:26, left:'50%', transform:'translateX(-50%)', background:'#2A2740', color:'#fff', padding:'14px 22px', borderRadius:14, boxShadow:'0 12px 30px rgba(40,30,70,.3)', display:'flex', alignItems:'center', gap:12, animation:'slideUp .3s ease', zIndex:50 } },
+      h('span', { style:{ width:30,height:30,borderRadius:'50%',background:removed?'#E0892B':'#1FAE8B',display:'flex',alignItems:'center',justifyContent:'center',fontSize:15 } }, removed?'🗑':'✓'),
+      h('div', null,
+        h('div',{style:{fontSize:14,fontWeight:700}}, (removed?'已移除 ':'已排入 ')+st.toast.name+' 的個別課'),
+        h('div',{style:{fontSize:12,opacity:.7}}, st.toast.slot+' ｜ 琴房 '+st.toast.room+' ｜ 已儲存,跨頁即時同步'))
+    ) : null;
+
+    return { teacherChips:chips, teacherList:tlist, studentList:slist, roomChips:rooms, weekGrid:grid, actionBar, toast };
+  }
+}
+</script>
+</body>
+</html>

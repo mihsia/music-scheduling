@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./store.js?v=8"></script>
+<script src="./support.js?v=8"></script>
+<script src="./nav.js?v=8" defer></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Noto+Serif+TC:wght@500;600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; }
+  @media print {
+    .no-print { display:none !important; }
+    .sheet { box-shadow:none !important; margin:0 !important; page-break-after:always; }
+    .stage { background:#fff !important; padding:0 !important; }
+  }
+</style>
+</helmet>
+
+<div class="stage" style="font-family:'Noto Sans TC',sans-serif; background:#F0EDF4; min-height:100vh; padding:24px 30px 50px;">
+  <div class="no-print">
+    <div style="font-size:13px; color:#9A93AC; margin-bottom:4px;">由排課結果即時產生 · A4 可列印</div>
+    <h1 style="margin:0 0 16px; font-size:22px; font-weight:700; color:#2A2740;">📄 紙本通知單</h1>
+    {{ toolbar }}
+  </div>
+
+  <div style="display:flex; flex-direction:column; align-items:center; gap:30px;">
+    {{ studentSheet }}
+    {{ teacherSheet }}
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:1180}}">
+class Component extends DCLogic {
+  state = { studentId: null, teacherId: null };
+  G = {
+    strings:{ label:'弦樂', bg:'#FF8E63', soft:'#FFEDE4', ink:'#C2502A' },
+    piano:  { label:'鋼琴', bg:'#F2B33C', soft:'#FFF3DC', ink:'#A9741A' },
+    winds:  { label:'管樂', bg:'#3FD0A8', soft:'#DEF7EF', ink:'#1E8A6C' },
+    perc:   { label:'擊樂', bg:'#FF6FB5', soft:'#FFE5F1', ink:'#C23B82' },
+  };
+  componentDidMount() {
+    this._u = AppStore.subscribe(() => this.forceUpdate());
+    const bk = AppStore.bookings();
+    const students = AppStore.list('students'), teachers = AppStore.list('teachers');
+    const sid = (students.find(s => bk.some(b => b.studentId===s.id || b.student===s.name)) || students[0] || {}).id;
+    const tid = (teachers.find(t => bk.some(b => b.teacherId===t.id)) || teachers[0] || {}).id;
+    this.setState({ studentId: sid || null, teacherId: tid || null });
+  }
+  componentWillUnmount() { if (this._u) this._u(); }
+
+  pInfo(k) { return (AppStore.PERIODS || []).find(x => x.k === k) || { time:'' }; }
+  endTime(start) {
+    const len = (AppStore.getRules().courseLen) || 45;
+    const m = /^(\d{1,2}):(\d{2})$/.exec(start || ''); if (!m) return '';
+    let total = (+m[1])*60 + (+m[2]) + len;
+    return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+  }
+  timeRange(k) { const p = this.pInfo(k); return p.time ? p.time+' – '+this.endTime(p.time) : '—'; }
+  sortBk(list) {
+    const o = ['p1','p2','p3','p4','p6','p7','p8','p9'], d = ['一','二','三','四','五'];
+    return list.slice().sort((a,b)=>(d.indexOf(a.day)-d.indexOf(b.day))||(o.indexOf(a.k)-o.indexOf(b.k)));
+  }
+
+  renderVals() {
+    const h = React.createElement;
+    const G = this.G;
+    const students = AppStore.list('students'), teachers = AppStore.list('teachers');
+    const rules = AppStore.getRules();
+    const len = rules.courseLen || 45;
+    const st = this.state;
+
+    // ---- toolbar ----
+    const selStyle = { border:'1px solid #D9D3E6', borderRadius:10, padding:'9px 12px', fontSize:13.5, color:'#2A2740', background:'#fff', cursor:'pointer', fontFamily:'inherit' };
+    const toolbar = h('div',{style:{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap',marginBottom:22}},
+      h('span',{style:{fontSize:13,color:'#6E6A86'}},'學生'),
+      h('select',{value:st.studentId||'',onChange:e=>this.setState({studentId:e.target.value}),style:selStyle},
+        [h('option',{key:'_',value:''},'—')].concat(students.map(s=>h('option',{key:s.id,value:s.id}, s.name+'（'+s.klass+'）')))),
+      h('span',{style:{fontSize:13,color:'#6E6A86',marginLeft:8}},'老師'),
+      h('select',{value:st.teacherId||'',onChange:e=>this.setState({teacherId:e.target.value}),style:selStyle},
+        [h('option',{key:'_',value:''},'—')].concat(teachers.map(t=>h('option',{key:t.id,value:t.id}, t.name)))),
+      h('button',{onClick:()=>window.print(),style:{marginLeft:'auto',cursor:'pointer',border:'none',fontFamily:'inherit',fontSize:13.5,fontWeight:600,padding:'10px 20px',borderRadius:11,color:'#fff',background:'linear-gradient(135deg,#6D54E8,#9A4FE0)',boxShadow:'0 6px 16px rgba(109,84,232,.3)'}},'🖨 列印 / 匯出 PDF'));
+
+    const sheetStyle = { width:794, minHeight:1123, background:'#fff', boxShadow:'0 1px 6px rgba(0,0,0,.12)', padding:'64px 60px', color:'#23202E' };
+    const masthead = (accent, sub, no) => h('div',{style:{display:'flex',alignItems:'center',gap:18,borderBottom:'3px solid '+accent,paddingBottom:18}},
+      h('div',{style:{width:58,height:58,borderRadius:'50%',background:'linear-gradient(135deg,'+accent+',#9A4FE0)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,flex:'none'}},'♪'),
+      h('div',{style:{flex:1}},
+        h('div',{style:{fontFamily:"'Noto Serif TC',serif",fontSize:24,fontWeight:900,letterSpacing:3}},'和聲國民中學 音樂班'),
+        h('div',{style:{fontSize:13,color:'#6E6A86',letterSpacing:2,marginTop:3}},'HE-SHENG JUNIOR HIGH SCHOOL · MUSIC PROGRAM')),
+      h('div',{style:{textAlign:'right',fontSize:12,color:'#8B859C',lineHeight:1.9}},
+        h('div',null,'單號 No. ',h('b',{style:{color:'#23202E',fontFamily:'Fredoka'}}, no)),
+        h('div',null,'發送日 ',h('span',{style:{fontFamily:'Fredoka'}},'2026 / 06 / 25'))));
+    const sectionTitle = (txt, color) => h('div',{style:{fontSize:15,fontWeight:700,margin:'30px 0 12px',display:'flex',alignItems:'center',gap:8}},
+      h('span',{style:{width:5,height:18,background:color,borderRadius:3,display:'inline-block'}}), txt);
+    const tdH = { border:'1px solid #D9D3E6', background:'#F6F3FB', padding:'12px 14px', fontWeight:700, color:'#5A5470' };
+    const td = { border:'1px solid #D9D3E6', padding:'12px 14px' };
+
+    // ---- 學生 A4 ----
+    const s = students.find(x => x.id === st.studentId);
+    let studentSheet;
+    if (!s) {
+      studentSheet = h('div',{className:'sheet',style:Object.assign({},sheetStyle,{display:'flex',alignItems:'center',justifyContent:'center',color:'#9A93AC'})},'請選擇學生');
+    } else {
+      const lessons = this.sortBk(AppStore.bookings().filter(b => b.studentId===s.id || b.student===s.name)).map(b => {
+        const t = teachers.find(x=>x.id===b.teacherId) || {};
+        const major = b.type ? b.type==='主修' : (s.majorG===t.group);
+        return { b, t, major, inst: major?s.majorI:s.minorI, grp: major?s.majorG:s.minorG };
+      });
+      const lessonRows = lessons.length ? lessons.map((L,i) => h('tr',{key:i,style:{textAlign:'center',background:i%2?'#FCFAFE':'#fff'}},
+        h('td',{style:td}, h('span',{style:{fontSize:12,fontWeight:700,color:'#fff',background:(G[L.grp]||G.piano).bg,padding:'3px 11px',borderRadius:6}}, L.major?'主修':'副修')),
+        h('td',{style:Object.assign({},td,{fontWeight:600})}, L.inst||'—'),
+        h('td',{style:td}, (L.t.name||'—')+' 老師'),
+        h('td',{style:Object.assign({},td,{fontWeight:600})}, '週'+L.b.day+' ', h('span',{style:{fontFamily:'Fredoka'}}, this.timeRange(L.b.k))),
+        h('td',{style:Object.assign({},td,{fontFamily:'Fredoka'})}, L.b.room),
+        h('td',{style:Object.assign({},td,{fontFamily:'Fredoka'})}, len+' 分'))) :
+        [h('tr',{key:'none'},h('td',{colSpan:6,style:Object.assign({},td,{textAlign:'center',color:'#9A93AC'})},'尚未排定個別課'))];
+
+      studentSheet = h('div',{className:'sheet',style:sheetStyle},
+        masthead('#6D54E8','', 'S-114-1-'+String(students.indexOf(s)+1).padStart(4,'0')),
+        h('div',{style:{textAlign:'center',margin:'34px 0 30px'}},
+          h('div',{style:{fontSize:14,letterSpacing:6,color:'#9A4FE0',fontWeight:600}},'114 學年度 第 1 學期'),
+          h('div',{style:{fontFamily:"'Noto Serif TC',serif",fontSize:30,fontWeight:900,letterSpacing:8,marginTop:8}},'個別課課表通知單')),
+        h('table',{style:{width:'100%',borderCollapse:'collapse',fontSize:14.5}}, h('tbody',null,
+          h('tr',null,
+            h('td',{style:Object.assign({},tdH,{width:90})},'學生姓名'), h('td',{style:Object.assign({},td,{fontWeight:600})}, s.name),
+            h('td',{style:Object.assign({},tdH,{width:70})},'班級'), h('td',{style:td}, s.klass),
+            h('td',{style:Object.assign({},tdH,{width:90})},'排課狀態'), h('td',{style:td}, s.sched||'—')))),
+        sectionTitle('本學期個別課時間','#6D54E8'),
+        h('table',{style:{width:'100%',borderCollapse:'collapse',fontSize:14}},
+          h('thead',null, h('tr',{style:{background:'#2A2740',color:'#fff'}},
+            ['項目','樂器','授課老師','上課時間','琴房','課長'].map((c,i)=>h('th',{key:i,style:{padding:'12px 10px',fontWeight:600,letterSpacing:1}}, c)))),
+          h('tbody',null, lessonRows)),
+        sectionTitle('上課須知','#6D54E8'),
+        h('ol',{style:{margin:0,paddingLeft:22,fontSize:13.5,color:'#4A4560',lineHeight:2.1}},
+          h('li',null,'請於上課前 5 分鐘抵達指定琴房,並自備樂器、樂譜與文具。'),
+          h('li',null,'如需請假,請於上課前一日向教務處辦理,並主動與授課老師約定補課。'),
+          h('li',null,'個別課時間如遇學校行事曆調整,將另行通知。'),
+          h('li',null,'本通知單之課表已同步於線上系統,如有疑問請洽教務處。')),
+        h('div',{style:{display:'flex',justifyContent:'flex-end',alignItems:'flex-end',gap:24,marginTop:40}},
+          h('div',{style:{textAlign:'center'}}, h('div',{style:{width:96,height:96,border:'2px dashed #C9C2D6',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',color:'#B7B0C6',fontSize:12}},'教務處 核章')),
+          h('div',{style:{fontSize:14,lineHeight:2.4,color:'#3A3550'}}, h('div',null,'承辦單位:',h('b',null,'教務處')), h('div',null,'主任:王○○　組長:陳○○'))),
+        h('div',{style:{borderTop:'2px dashed #B7B0C6',marginTop:40,paddingTop:18}},
+          h('div',{style:{fontFamily:"'Noto Serif TC',serif",fontSize:16,fontWeight:700,letterSpacing:2,marginBottom:14}},'✂ 家長回條'),
+          h('div',{style:{fontSize:14,color:'#3A3550',lineHeight:2.6}},'茲收到貴校 114 學年度第 1 學期個別課課表通知單,內容已知悉。',
+            h('div',{style:{display:'flex',gap:40,marginTop:14}},
+              h('div',{style:{flex:1}},'學生班級姓名:',h('span',{style:{display:'inline-block',borderBottom:'1px solid #8B859C',width:160}})),
+              h('div',{style:{flex:1}},'家長簽章:',h('span',{style:{display:'inline-block',borderBottom:'1px solid #8B859C',width:160}}))))));
+    }
+
+    // ---- 老師 A4 ----
+    const t = teachers.find(x => x.id === st.teacherId);
+    let teacherSheet;
+    if (!t) {
+      teacherSheet = h('div',{className:'sheet',style:Object.assign({},sheetStyle,{display:'flex',alignItems:'center',justifyContent:'center',color:'#9A93AC'})},'請選擇老師');
+    } else {
+      const g = G[t.group] || G.strings;
+      const bk = this.sortBk(AppStore.bookings().filter(b => b.teacherId===t.id));
+      const days = Array.from(new Set(bk.map(b=>b.day)));
+      const tdO = { border:'1px solid #E2D5CC', padding:'12px 14px' };
+      const tdOH = { border:'1px solid #E2D5CC', background:'#FBF3EE', padding:'12px 14px', fontWeight:700, color:'#8A5A42' };
+      const rows = bk.length ? bk.map((b,i)=>{
+        const stu = students.find(x=>x.id===b.studentId||x.name===b.student) || {};
+        const major = b.type ? b.type==='主修' : (stu.majorG===t.group);
+        return h('tr',{key:i,style:{background:i%2?'#FCFAFE':'#fff'}},
+          h('td',{style:Object.assign({},tdO,{fontWeight:600})},'週'+b.day),
+          h('td',{style:Object.assign({},tdO,{fontFamily:'Fredoka'})}, this.timeRange(b.k)),
+          h('td',{style:tdO}, b.student),
+          h('td',{style:tdO}, stu.klass||'—'),
+          h('td',{style:tdO}, h('span',{style:{fontSize:11,color:major?g.ink:'#A9741A',background:major?g.soft:'#FFF3DC',padding:'2px 8px',borderRadius:5}}, major?'主修':'副修')),
+          h('td',{style:Object.assign({},tdO,{fontFamily:'Fredoka'})}, b.room));
+      }) : [h('tr',{key:'none'},h('td',{colSpan:6,style:Object.assign({},tdO,{textAlign:'center',color:'#9A93AC'})},'本學期尚無授課時段'))];
+      const hours = (bk.length*len/60);
+
+      teacherSheet = h('div',{className:'sheet',style:sheetStyle},
+        masthead('#FF8E63','', 'T-114-1-'+String(teachers.indexOf(t)+1).padStart(4,'0')),
+        h('div',{style:{textAlign:'center',margin:'34px 0 30px'}},
+          h('div',{style:{fontSize:14,letterSpacing:6,color:'#C2502A',fontWeight:600}},'114 學年度 第 1 學期'),
+          h('div',{style:{fontFamily:"'Noto Serif TC',serif",fontSize:30,fontWeight:900,letterSpacing:8,marginTop:8}},'外聘教師授課課表通知單')),
+        h('table',{style:{width:'100%',borderCollapse:'collapse',fontSize:14.5}}, h('tbody',null,
+          h('tr',null,
+            h('td',{style:Object.assign({},tdOH,{width:90})},'教師姓名'), h('td',{style:Object.assign({},tdO,{fontWeight:600})}, t.name),
+            h('td',{style:Object.assign({},tdOH,{width:90})},'樂器組別'), h('td',{style:tdO}, g.label+' · '+t.instrument)),
+          h('tr',null,
+            h('td',{style:tdOH},'開課日'), h('td',{style:tdO}, (t.days&&t.days.length?t.days.map(d=>'週'+d).join('、'):(days.map(d=>'週'+d).join('、')||'—'))+'（'+(t.slot||'')+'）'),
+            h('td',{style:tdOH},'聯絡電話'), h('td',{style:Object.assign({},tdO,{fontFamily:'Fredoka'})}, t.phone||'—')))),
+        sectionTitle('本學期授課課表','#FF8E63'),
+        h('table',{style:{width:'100%',borderCollapse:'collapse',fontSize:13.5,textAlign:'center'}},
+          h('thead',null, h('tr',{style:{background:'#2A2740',color:'#fff'}},
+            ['星期','時間','學生','班級','項目','琴房'].map((c,i)=>h('th',{key:i,style:{padding:'11px 8px',fontWeight:600}}, c)))),
+          h('tbody',null, rows)),
+        h('div',{style:{display:'flex',gap:14,marginTop:18}},
+          [[bk.length,'每週授課堂數'],[hours.toFixed(hours%1?1:0)+' 小時','每週授課時數'],[bk.length+' 堂','本週累計堂數']].map((x,i)=>
+            h('div',{key:i,style:{flex:1,border:'1px solid #FCE2D4',background:'#FFF6F1',borderRadius:10,padding:'14px 16px',textAlign:'center'}},
+              h('div',{style:{fontSize:22,fontWeight:700,color:'#C2502A',fontFamily:'Fredoka'}}, x[0]),
+              h('div',{style:{fontSize:12,color:'#8A5A42'}}, x[1])))),
+        sectionTitle('注意事項','#FF8E63'),
+        h('ol',{style:{margin:0,paddingLeft:22,fontSize:13.5,color:'#4A4560',lineHeight:2.1}},
+          h('li',null,'請依表定時間到校授課,並於每堂課填寫教學紀錄表。'),
+          h('li',null,'如需調課或補課,請於前一週向教務處提出申請。'),
+          h('li',null,'鐘點費依實際授課堂數核計,月底彙整造冊。')),
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginTop:36}},
+          h('div',{style:{fontSize:14,color:'#3A3550',lineHeight:2.4}},
+            h('div',null,'教師簽收:',h('span',{style:{display:'inline-block',borderBottom:'1px solid #8B859C',width:140}})),
+            h('div',null,'簽收日期:',h('span',{style:{display:'inline-block',borderBottom:'1px solid #8B859C',width:140}}))),
+          h('div',{style:{textAlign:'center'}}, h('div',{style:{width:96,height:96,border:'2px dashed #C9C2D6',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',color:'#B7B0C6',fontSize:12}},'教務處 核章'))));
+    }
+
+    return { toolbar, studentSheet, teacherSheet };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./store.js?v=8"></script>
+<script src="./support.js?v=8"></script>
+<script src="./nav.js?v=8" defer></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #D9D3E6; border-radius: 6px; }
+  @keyframes drawerIn { 0% { transform: translateX(100%); } 100% { transform: translateX(0); } }
+  @keyframes fadeIn { 0% { opacity:0; } 100% { opacity:1; } }
+  input, select { font-family: inherit; }
+  input:focus, select:focus { outline: 2px solid #B7A8F0; outline-offset: 0; }
+</style>
+</helmet>
+<div style="font-family:'Fredoka','Noto Sans TC',sans-serif; background:#FAF7F3; color:#2A2740; height:100vh; display:flex; overflow:hidden;">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside style="width:226px; flex:none; background:#2A2740; color:#fff; display:flex; flex-direction:column; padding:22px 16px;">
+    <div style="display:flex; align-items:center; gap:11px; padding:4px 8px 22px;">
+      <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#6D54E8,#C25BD6);display:flex;align-items:center;justify-content:center;font-size:20px;">♪</div>
+      <div><div style="font-size:17px;font-weight:700;letter-spacing:.5px;">樂排</div><div style="font-size:11px;opacity:.55;">音樂班排課系統</div></div>
+    </div>
+    <div style="font-size:11px; opacity:.4; letter-spacing:1px; padding:6px 10px;">主選單</div>
+    <nav style="display:flex; flex-direction:column; gap:3px; margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📊<span>總覽 Dashboard</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎻<span>外聘老師</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎒<span>學生資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🚪<span>琴房資料</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📚<span>班級課表</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">⚙️<span>排課原則</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">🎼<span>排課工作台</span></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;font-size:14px;opacity:.7;cursor:pointer;">📈<span>報表中心</span></div>
+    </nav>
+    <div style="margin-top:auto; display:flex; align-items:center; gap:10px; padding:11px; background:rgba(255,255,255,.07); border-radius:14px;">
+      <div style="width:34px;height:34px;border-radius:50%;background:#9A4FE0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;">王</div>
+      <div style="line-height:1.3;"><div style="font-size:13px;font-weight:600;">王主任</div><div style="font-size:11px;opacity:.55;">教務管理者</div></div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+    <header style="flex:none; padding:18px 30px; background:#fff; border-bottom:1px solid #EDE8F2;">
+      <div style="font-size:12px; color:#9A93AC; margin-bottom:3px;">基礎資料 · 新增編輯後立即保存,各頁共用</div>
+      {{ headerTitle }}
+    </header>
+
+    <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; padding:20px 30px 0;">
+      {{ toolbar }}
+      <div style="flex:1; overflow:auto; margin-top:16px; padding-bottom:24px;">
+        {{ table }}
+      </div>
+    </div>
+  </main>
+
+  {{ drawer }}
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    tab: 'teacher',
+    search: '',
+    drawer: null,
+    teachers: [],  // 由 store.js 載入
+    students: [],
+    rooms: [],
+  };
+
+  // ---- 與共享資料層 store.js 連動 ----
+  componentDidMount() {
+    const p = new URLSearchParams(location.search);
+    const tab = p.get('tab');
+    this._unsub = AppStore.subscribe(() => this.loadFromStore());
+    this.loadFromStore(['teacher','student','room'].indexOf(tab) >= 0 ? tab : null);
+  }
+  componentWillUnmount() { if (this._unsub) this._unsub(); }
+  loadFromStore(tab) {
+    const patch = {
+      teachers: AppStore.list('teachers'),
+      students: AppStore.list('students'),
+      rooms: AppStore.list('rooms'),
+    };
+    if (tab) patch.tab = tab;
+    this.setState(patch);
+  }
+
+  GROUPS = {
+    strings:{ bg:'#FF8E63', soft:'#FFEDE4', ink:'#C2502A', label:'弦樂', icon:'🎻' },
+    piano:  { bg:'#F2B33C', soft:'#FFF3DC', ink:'#A9741A', label:'鋼琴', icon:'🎹' },
+    winds:  { bg:'#3FD0A8', soft:'#DEF7EF', ink:'#1E8A6C', label:'管樂', icon:'🎺' },
+    perc:   { bg:'#FF6FB5', soft:'#FFE5F1', ink:'#C23B82', label:'擊樂', icon:'🥁' },
+  };
+  DAYS = ['一','二','三','四','五'];
+  SLOTS = ['上午','下午','晚間','全天'];
+
+  TABS = [
+    { k:'teacher', label:'外聘老師', icon:'🎻' },
+    { k:'student', label:'學生資料', icon:'🎒' },
+    { k:'room', label:'琴房資料', icon:'🚪' },
+  ];
+
+  list() { return this.state.tab==='teacher' ? this.state.teachers : this.state.tab==='student' ? this.state.students : this.state.rooms; }
+  setList(arr) {
+    const key = this.state.tab==='teacher'?'teachers':this.state.tab==='student'?'students':'rooms';
+    AppStore.replace(key, arr);   // 永久保存（會觸發 subscribe 重新載入）
+    this.setState({ [key]: arr });
+  }
+  blank() {
+    if (this.state.tab==='teacher') return { id:'t'+Date.now(), name:'', group:'strings', instrument:'', days:[], slots:['下午'], phone:'', status:'啟用' };
+    if (this.state.tab==='student') return { id:'s'+Date.now(), name:'', klass:'', majorG:'strings', majorI:'', minorG:'piano', minorI:'', sched:'待排' };
+    return { id:'R'+Date.now(), name:'', floor:'1F', equip:'', groups:[], slot:'全天', status:'啟用' };
+  }
+  openAdd() { this.setState({ drawer:{ mode:'add', data:this.blank() } }); }
+  openEdit(item) { this.setState({ drawer:{ mode:'edit', data:JSON.parse(JSON.stringify(item)) } }); }
+  close() { this.setState({ drawer:null }); }
+  upd(key, val) { this.setState(p => ({ drawer:{ ...p.drawer, data:{ ...p.drawer.data, [key]:val } } })); }
+  toggleSlot(s) {
+    this.setState(p => {
+      const d = p.drawer.data;
+      const cur = (d.slots && d.slots.length) ? d.slots.slice() : (d.slot ? [d.slot] : []);
+      const next = cur.includes(s) ? cur.filter(x=>x!==s) : cur.concat(s);
+      return { drawer:{ ...p.drawer, data:{ ...d, slots:next, slot:undefined } } };
+    });
+  }
+  toggleArr(key, val) {
+    this.setState(p => {
+      const cur = p.drawer.data[key] || [];
+      const next = cur.includes(val) ? cur.filter(x=>x!==val) : [...cur, val];
+      return { drawer:{ ...p.drawer, data:{ ...p.drawer.data, [key]:next } } };
+    });
+  }
+  save() {
+    const d = this.state.drawer; if (!d) return;
+    const arr = this.list().slice();
+    if (d.mode==='add') arr.push(d.data);
+    else { const i = arr.findIndex(x=>x.id===d.data.id); if (i>=0) arr[i]=d.data; }
+    this.setList(arr);
+    this.setState({ drawer:null });
+  }
+  remove(id) { this.setList(this.list().filter(x=>x.id!==id)); this.setState({ drawer:null }); }
+
+  // ---- CSV 匯入 / 範例下載 ----
+  GROUP_CODE = { '弦樂':'strings', '鋼琴':'piano', '管樂':'winds', '擊樂':'perc' };
+  groupCode(label) { const t=(label||'').trim(); return this.GROUP_CODE[t] || (this.GROUPS[t]?t:'strings'); }
+  tabName() { return { teacher:'外聘老師', student:'學生', room:'琴房' }[this.state.tab]; }
+  csvSpec() {
+    const tab = this.state.tab, rid = (p)=>p+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);
+    const gl = (c)=> (this.GROUPS[c]?this.GROUPS[c].label:c);
+    if (tab==='teacher') return {
+      headers:['姓名','組別','樂器','開課日','時段','電話','狀態'],
+      sample:['林小明','弦樂','小提琴','一、三、五','上午、下午','0912-000-000','啟用'],
+      toRecord:(r)=>({ id:rid('t'), name:r['姓名']||'', group:this.groupCode(r['組別']||'弦樂'), instrument:r['樂器']||'', days:(r['開課日']||'').split(/[、,，\s]+/).filter(Boolean), slots:(r['時段']||'下午').split(/[、,，\s]+/).filter(Boolean), phone:r['電話']||'', status:r['狀態']||'啟用' }),
+      toRow:(x)=>[x.name||'', gl(x.group), x.instrument||'', (x.days||[]).join('、'), ((x.slots&&x.slots.length?x.slots:(x.slot?[x.slot]:[]))).join('、'), x.phone||'', x.status||''] };
+    if (tab==='student') return {
+      headers:['姓名','班級','主修組別','主修樂器','副修組別','副修樂器','排課狀態'],
+      sample:['王小美','七年甲','弦樂','小提琴','鋼琴','鋼琴','待排'],
+      toRecord:(r)=>({ id:rid('s'), name:r['姓名']||'', klass:r['班級']||'', majorG:this.groupCode(r['主修組別']||'弦樂'), majorI:r['主修樂器']||'', minorG:this.groupCode(r['副修組別']||'鋼琴'), minorI:r['副修樂器']||'', sched:r['排課狀態']||'待排' }),
+      toRow:(x)=>[x.name||'', x.klass||'', gl(x.majorG), x.majorI||'', gl(x.minorG), x.minorI||'', x.sched||''] };
+    return {
+      headers:['教室代號','樓層','設備','適用組別','時段','狀態'],
+      sample:['A201','2F','直立鋼琴 ×1','鋼琴、弦樂','全天','啟用'],
+      toRecord:(r)=>({ id:(r['教室代號']||rid('R')), name:r['教室代號']||'', floor:r['樓層']||'1F', equip:r['設備']||'', groups:(r['適用組別']||'').split(/[、,，\s]+/).filter(Boolean).map(g=>this.groupCode(g)), slot:r['時段']||'全天', status:r['狀態']||'啟用' }),
+      toRow:(x)=>[x.name||x.id||'', x.floor||'', x.equip||'', (x.groups||[]).map(gl).join('、'), x.slot||'', x.status||''] };
+  }
+  exportCSV() {
+    const sp=this.csvSpec(), esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const rows=this.list().map(sp.toRow);
+    const csv='﻿'+[sp.headers].concat(rows).map(r=>r.map(esc).join(',')).join('\r\n');
+    this.downloadBlob(this.tabName()+'_'+(new Date().toISOString().slice(0,10))+'.csv', csv, 'text/csv;charset=utf-8');
+  }
+  parseCSV(text) {
+    text = String(text).replace(/^﻿/,'');
+    const rows=[]; let i=0, field='', row=[], inQ=false;
+    while (i<text.length) { const c=text[i];
+      if (inQ) { if (c==='"') { if (text[i+1]==='"') { field+='"'; i++; } else inQ=false; } else field+=c; }
+      else { if (c==='"') inQ=true; else if (c===',') { row.push(field); field=''; }
+        else if (c==='\n'||c==='\r') { if (c==='\r'&&text[i+1]==='\n') i++; row.push(field); rows.push(row); row=[]; field=''; }
+        else field+=c; }
+      i++;
+    }
+    if (field!==''||row.length) { row.push(field); rows.push(row); }
+    return rows.filter(r=>r.some(c=>(c||'').trim()!==''));
+  }
+  downloadBlob(name, text, type) { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },0); }
+  downloadTemplate() {
+    const sp=this.csvSpec(), esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    const csv='﻿'+[sp.headers, sp.sample].map(r=>r.map(esc).join(',')).join('\r\n');
+    this.downloadBlob(this.tabName()+'_匯入範例.csv', csv, 'text/csv;charset=utf-8');
+  }
+  importCSV(e) {
+    const file = e.target.files && e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const rows = this.parseCSV(reader.result);
+        if (rows.length < 2) { alert('CSV 沒有資料列(第一列為欄位標題)'); return; }
+        const sp = this.csvSpec(), header = rows[0].map(x=>x.trim()), recs=[];
+        for (let r=1; r<rows.length; r++) { const obj={}; header.forEach((hh,ci)=>obj[hh]=(rows[r][ci]||'').trim()); if (obj[sp.headers[0]]) recs.push(sp.toRecord(obj)); }
+        if (!recs.length) { alert('沒有可匯入的資料,請確認欄位標題與範例一致'); return; }
+        this.setList(this.list().slice().concat(recs));
+        alert('已匯入 '+recs.length+' 筆'+this.tabName()+'資料');
+      } catch (err) { alert('匯入失敗:'+(err && err.message ? err.message : err)); }
+    };
+    reader.readAsText(file, 'utf-8');
+    e.target.value='';
+  }
+
+  renderVals() {
+    const h = React.createElement;
+    const G = this.GROUPS, st = this.state, tab = st.tab;
+    const navItem = (k, icon, label) => {
+      const on = tab===k;
+      return h('div', { onClick:()=>this.setState({ tab:k, search:'' }),
+        style:{ display:'flex', alignItems:'center', gap:11, padding:on?'11px 12px':'10px 12px', borderRadius:12, fontSize:14, cursor:'pointer',
+          fontWeight:on?600:400, opacity:on?1:.7,
+          background:on?'linear-gradient(135deg,#6D54E8,#9A4FE0)':'transparent',
+          boxShadow:on?'0 6px 16px rgba(109,84,232,.4)':'none' } }, icon, h('span',null,label));
+    };
+
+    const titles = { teacher:['外聘老師資料庫','管理外聘老師的樂器組別、開課時間與聯絡資料'], student:['學生資料庫','管理學生班級、主修與副修'], room:['琴房資料表','管理琴房設備、適用組別與可用時段'] };
+    const headerTitle = h('h1', { style:{ margin:0, fontSize:22, fontWeight:700 } }, this.TABS.find(t=>t.k===tab).icon+' '+titles[tab][0]);
+
+    // toolbar: tabs + search + count + add
+    const data = this.list();
+    const filtered = data.filter(x => {
+      const s = st.search.trim(); if (!s) return true;
+      const hay = (x.name||'')+(x.klass||'')+(x.instrument||'')+(x.majorI||'')+(x.minorI||'')+(x.equip||'');
+      return hay.includes(s);
+    });
+    const toolbar = h('div', { style:{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' } },
+      h('div', { style:{ display:'flex', gap:6, background:'#F1EEF6', padding:5, borderRadius:14 } },
+        this.TABS.map(t => h('button', { key:t.k, onClick:()=>this.setState({ tab:t.k, search:'' }),
+          style:{ cursor:'pointer', border:'none', fontFamily:'inherit', fontSize:13.5, fontWeight:600, padding:'9px 18px', borderRadius:10,
+            background: tab===t.k?'#fff':'transparent', color: tab===t.k?'#2A2740':'#9A93AC',
+            boxShadow: tab===t.k?'0 2px 8px rgba(40,30,70,.08)':'none' } }, t.icon+' '+t.label))
+      ),
+      h('div', { style:{ flex:1 } }),
+      h('div', { style:{ position:'relative', width:240 } },
+        h('span', { style:{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', fontSize:14, opacity:.5 } }, '🔍'),
+        h('input', { value:st.search, placeholder:'搜尋姓名 / 班級 / 樂器…', onChange:e=>this.setState({ search:e.target.value }),
+          style:{ width:'100%', border:'1px solid #E2DCEC', borderRadius:12, padding:'10px 12px 10px 36px', fontSize:13, background:'#fff', color:'#2A2740' } })
+      ),
+      h('span', { style:{ fontSize:13, color:'#9A93AC' } }, '共 '+filtered.length+' 筆'),
+      h('button', { onClick:()=>this.downloadTemplate(), title:'下載可填寫的 CSV 範例',
+        style:{ cursor:'pointer', border:'1px solid #E2DCEC', background:'#fff', fontFamily:'inherit', fontSize:13, fontWeight:600, color:'#6E6A86', padding:'10px 14px', borderRadius:12 } }, '⬇ 範例 CSV'),
+      h('button', { onClick:()=>this.exportCSV(), title:'把目前清單匯出成 CSV',
+        style:{ cursor:'pointer', border:'1px solid #E2DCEC', background:'#fff', fontFamily:'inherit', fontSize:13, fontWeight:600, color:'#6D54E8', padding:'10px 14px', borderRadius:12 } }, '⬇ 匯出 CSV'),
+      h('label', { title:'從 CSV 匯入(會新增到現有資料)',
+        style:{ cursor:'pointer', border:'none', fontFamily:'inherit', fontSize:13, fontWeight:600, color:'#fff', background:'#1FAE8B', padding:'11px 16px', borderRadius:12, boxShadow:'0 4px 12px rgba(31,174,139,.25)' } },
+        '⬆ 匯入 CSV',
+        h('input', { type:'file', accept:'.csv,text/csv', onChange:e=>this.importCSV(e), style:{ display:'none' } })),
+      h('button', { onClick:()=>this.openAdd(),
+        style:{ cursor:'pointer', border:'none', fontFamily:'inherit', fontSize:13.5, fontWeight:600, padding:'11px 20px', borderRadius:12, color:'#fff',
+          background:'linear-gradient(135deg,#6D54E8,#9A4FE0)', boxShadow:'0 6px 16px rgba(109,84,232,.3)' } }, '＋ 新增')
+    );
+
+    // table
+    const badge = (txt, soft, ink) => h('span', { style:{ fontSize:11.5, fontWeight:600, color:ink, background:soft, padding:'3px 9px', borderRadius:7 } }, txt);
+    const statusPill = (s) => s==='啟用'||s==='已排'
+      ? badge(s, '#E7FBF3', '#1FAE8B')
+      : s==='停用'
+        ? badge(s, '#F3F1F6', '#9A93AC')
+        : badge(s, '#FFF3DC', '#C28A1A');
+    const editBtn = (item) => h('button', { onClick:()=>this.openEdit(item),
+      style:{ cursor:'pointer', border:'1px solid #E2DCEC', background:'#fff', fontFamily:'inherit', fontSize:12.5, fontWeight:600, color:'#6D54E8', padding:'7px 14px', borderRadius:9 } }, '編輯');
+
+    let cols, rowFn;
+    if (tab==='teacher') {
+      cols = ['老師','樂器組別','主授樂器','開課時間','聯絡電話','狀態',''];
+      rowFn = (x) => [
+        h('div', { style:{ display:'flex', alignItems:'center', gap:10 } },
+          h('div', { style:{ width:34,height:34,borderRadius:10,background:G[x.group].bg,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:600,fontSize:14,flex:'none' } }, x.name[0]||'?'),
+          h('span', { style:{ fontWeight:700, fontSize:14 } }, x.name||'—')),
+        badge(G[x.group].icon+' '+G[x.group].label, G[x.group].soft, G[x.group].ink),
+        h('span', { style:{ fontSize:13.5 } }, x.instrument||'—'),
+        h('span', { style:{ fontSize:13 } }, x.days&&x.days.length ? ('週'+x.days.join('、')+' '+((x.slots&&x.slots.length?x.slots:(x.slot?[x.slot]:[])).join('、'))) : '—'),
+        h('span', { style:{ fontSize:13, color:'#6E6A86', fontFamily:'Fredoka' } }, x.phone||'—'),
+        statusPill(x.status),
+        editBtn(x),
+      ];
+    } else if (tab==='student') {
+      cols = ['學生','班級','主修','副修','排課狀態',''];
+      rowFn = (x) => [
+        h('div', { style:{ display:'flex', alignItems:'center', gap:10 } },
+          h('div', { style:{ width:34,height:34,borderRadius:10,background:'#EDE9F6',color:'#6E6A86',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:600,fontSize:14,flex:'none' } }, x.name[0]||'?'),
+          h('span', { style:{ fontWeight:700, fontSize:14 } }, x.name||'—')),
+        h('span', { style:{ fontSize:13.5, color:'#6E6A86' } }, x.klass||'—'),
+        badge(G[x.majorG].icon+' '+x.majorI, G[x.majorG].soft, G[x.majorG].ink),
+        badge(G[x.minorG].icon+' '+x.minorI, G[x.minorG].soft, G[x.minorG].ink),
+        statusPill(x.sched),
+        editBtn(x),
+      ];
+    } else {
+      cols = ['琴房','樓層','設備','適用組別','可用時段','狀態',''];
+      rowFn = (x) => [
+        h('div', { style:{ display:'flex', alignItems:'center', gap:10 } },
+          h('div', { style:{ width:34,height:34,borderRadius:10,background:'#EEF0FF',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flex:'none' } }, '🚪'),
+          h('span', { style:{ fontWeight:700, fontSize:14, fontFamily:'Fredoka' } }, x.name||'—')),
+        h('span', { style:{ fontSize:13.5, color:'#6E6A86' } }, x.floor||'—'),
+        h('span', { style:{ fontSize:13 } }, x.equip||'—'),
+        h('div', { style:{ display:'flex', gap:4, flexWrap:'wrap' } }, (x.groups||[]).map(g => h('span',{key:g,style:{width:18,height:18,borderRadius:5,background:G[g].bg,display:'inline-block'},title:G[g].label}))),
+        h('span', { style:{ fontSize:13 } }, x.slot||'—'),
+        statusPill(x.status),
+        editBtn(x),
+      ];
+    }
+    const colTmpl = tab==='student' ? '1.4fr 1fr 1.2fr 1.2fr .9fr 80px' : tab==='teacher' ? '1.3fr 1fr 1fr 1.3fr 1.1fr .8fr 80px' : '1fr .7fr 1.5fr 1fr .9fr .8fr 80px';
+    const table = h('div', { style:{ background:'#fff', border:'1px solid #ECE7F2', borderRadius:18, overflow:'hidden', boxShadow:'0 4px 16px rgba(40,30,70,.04)' } },
+      h('div', { style:{ display:'grid', gridTemplateColumns:colTmpl, gap:14, padding:'14px 22px', background:'#FAF8FC', borderBottom:'1px solid #EFECF4', fontSize:12, fontWeight:600, color:'#9A93AC', letterSpacing:.5 } },
+        cols.map((c,i)=>h('div',{key:i},c))),
+      filtered.length ? filtered.map((x,ri) => h('div', { key:x.id,
+          style:{ display:'grid', gridTemplateColumns:colTmpl, gap:14, padding:'13px 22px', alignItems:'center', borderBottom: ri<filtered.length-1?'1px solid #F2EFF6':'none' } },
+          rowFn(x)))
+        : h('div', { style:{ padding:'48px', textAlign:'center', color:'#9A93AC', fontSize:14 } }, '查無資料,試試其他關鍵字或點「新增」。')
+    );
+
+    // ===== drawer =====
+    let drawer = null;
+    const d = st.drawer;
+    if (d) {
+      const data = d.data;
+      const inputStyle = { width:'100%', border:'1px solid #E2DCEC', borderRadius:10, padding:'11px 13px', fontSize:14, color:'#2A2740', background:'#fff' };
+      const field = (label, el, hint) => h('div', { style:{ marginBottom:18 } },
+        h('label', { style:{ display:'block', fontSize:12.5, fontWeight:600, color:'#6E6A86', marginBottom:7 } }, label),
+        el, hint?h('div',{style:{fontSize:11,color:'#B0AAC0',marginTop:5}},hint):null);
+      const text = (key, ph) => h('input', { value:data[key]||'', placeholder:ph, onChange:e=>this.upd(key,e.target.value), style:inputStyle });
+      const sel = (key, opts) => h('select', { value:data[key], onChange:e=>this.upd(key,e.target.value), style:{...inputStyle, cursor:'pointer'} },
+        opts.map(o => h('option', { key:o.v, value:o.v }, o.t)));
+      const groupOpts = Object.keys(G).map(g=>({v:g,t:G[g].icon+' '+G[g].label}));
+
+      let body;
+      if (tab==='teacher') {
+        body = [
+          field('老師姓名', text('name','例:林筱晴')),
+          h('div',{key:'r',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}},
+            field('樂器組別', sel('group', groupOpts)),
+            field('主授樂器', text('instrument','例:小提琴'))),
+          field('開課日(可複選)', h('div',{style:{display:'flex',gap:8}}, this.DAYS.map(day=>{
+            const on=(data.days||[]).includes(day);
+            return h('button',{key:day,onClick:()=>this.toggleArr('days',day),style:{cursor:'pointer',fontFamily:'inherit',flex:1,border:'1.5px solid '+(on?'#6D54E8':'#E2DCEC'),background:on?'#6D54E8':'#fff',color:on?'#fff':'#6E6A86',borderRadius:10,padding:'10px 0',fontSize:14,fontWeight:600}},'週'+day);
+          })), '排課時系統會比對這些時段'),
+          field('開課時段(可複選,一天可多時段)', h('div',{style:{display:'flex',gap:8}}, this.SLOTS.map(s=>{
+            const cur=(data.slots&&data.slots.length)?data.slots:(data.slot?[data.slot]:[]);
+            const on=cur.includes(s);
+            return h('button',{key:s,onClick:()=>this.toggleSlot(s),style:{cursor:'pointer',fontFamily:'inherit',flex:1,border:'1.5px solid '+(on?'#6D54E8':'#E2DCEC'),background:on?'#6D54E8':'#fff',color:on?'#fff':'#6E6A86',borderRadius:10,padding:'10px 0',fontSize:13,fontWeight:600}},s);
+          })), '可同時選「上午＋下午」表示一天兩個時段'),
+          field('聯絡電話', text('phone','0912-000-000')),
+          field('狀態', sel('status',[{v:'啟用',t:'啟用'},{v:'停用',t:'停用'}])),
+        ];
+      } else if (tab==='student') {
+        body = [
+          h('div',{key:'r1',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}},
+            field('學生姓名', text('name','例:王心妍')),
+            field('班級', text('klass','例:七年甲'))),
+          h('div',{key:'major',style:{background:'#FAF8FC',borderRadius:14,padding:'15px 15px 1px',marginBottom:16}},
+            h('div',{style:{fontSize:12.5,fontWeight:700,color:'#6D54E8',marginBottom:12}},'主修'),
+            h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}},
+              field('組別', sel('majorG', groupOpts)),
+              field('樂器', text('majorI','例:小提琴')))),
+          h('div',{key:'minor',style:{background:'#FAF8FC',borderRadius:14,padding:'15px 15px 1px',marginBottom:16}},
+            h('div',{style:{fontSize:12.5,fontWeight:700,color:'#9A4FE0',marginBottom:12}},'副修'),
+            h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}},
+              field('組別', sel('minorG', groupOpts)),
+              field('樂器', text('minorI','例:鋼琴')))),
+          field('排課狀態', sel('sched',[{v:'待排',t:'待排'},{v:'排課中',t:'排課中'},{v:'已排',t:'已排'}])),
+        ];
+      } else {
+        body = [
+          h('div',{key:'r',style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}},
+            field('琴房編號', text('name','例:A101')),
+            field('樓層 / 位置', text('floor','例:1F'))),
+          field('設備', text('equip','例:平台鋼琴 ×1、譜架')),
+          field('適用樂器組別(可複選)', h('div',{style:{display:'flex',gap:8,flexWrap:'wrap'}}, Object.keys(G).map(g=>{
+            const on=(data.groups||[]).includes(g);
+            return h('button',{key:g,onClick:()=>this.toggleArr('groups',g),style:{cursor:'pointer',fontFamily:'inherit',border:'1.5px solid '+(on?G[g].bg:'#E2DCEC'),background:on?G[g].soft:'#fff',color:on?G[g].ink:'#9A93AC',borderRadius:10,padding:'9px 14px',fontSize:13,fontWeight:600}},G[g].icon+' '+G[g].label);
+          }))),
+          field('可用時段', h('div',{style:{display:'flex',gap:8}}, this.SLOTS.map(s=>{
+            const on=data.slot===s;
+            return h('button',{key:s,onClick:()=>this.upd('slot',s),style:{cursor:'pointer',fontFamily:'inherit',flex:1,border:'1.5px solid '+(on?'#6D54E8':'#E2DCEC'),background:on?'#F4F1FB':'#fff',color:on?'#6D54E8':'#6E6A86',borderRadius:10,padding:'10px 0',fontSize:13,fontWeight:600}},s);
+          }))),
+          field('狀態', sel('status',[{v:'啟用',t:'啟用'},{v:'停用',t:'停用(維修)'}])),
+        ];
+      }
+
+      drawer = h('div', { style:{ position:'fixed', inset:0, zIndex:60, display:'flex', justifyContent:'flex-end' } },
+        h('div', { onClick:()=>this.close(), style:{ position:'absolute', inset:0, background:'rgba(42,39,64,.32)', animation:'fadeIn .2s ease' } }),
+        h('div', { style:{ position:'relative', width:440, background:'#fff', height:'100%', display:'flex', flexDirection:'column', boxShadow:'-10px 0 40px rgba(40,30,70,.18)', animation:'drawerIn .28s cubic-bezier(.2,.8,.2,1)' } },
+          h('div', { style:{ padding:'22px 26px', borderBottom:'1px solid #EFECF4', display:'flex', alignItems:'center', justifyContent:'space-between' } },
+            h('div', null,
+              h('div',{style:{fontSize:12,color:'#9A93AC',marginBottom:3}}, this.TABS.find(t=>t.k===tab).label),
+              h('div',{style:{fontSize:19,fontWeight:700}}, d.mode==='add'?'新增資料':'編輯資料')),
+            h('button',{onClick:()=>this.close(),style:{cursor:'pointer',border:'none',background:'#F1EEF6',width:34,height:34,borderRadius:10,fontSize:16,color:'#6E6A86'}},'✕')),
+          h('div', { style:{ flex:1, overflowY:'auto', padding:'22px 26px' } }, body),
+          h('div', { style:{ padding:'16px 26px', borderTop:'1px solid #EFECF4', display:'flex', gap:10, alignItems:'center' } },
+            d.mode==='edit' ? h('button',{onClick:()=>this.remove(data.id),style:{cursor:'pointer',border:'none',background:'#FFF0F4',color:'#E23A68',fontFamily:'inherit',fontSize:13,fontWeight:600,padding:'12px 16px',borderRadius:11}},'刪除') : null,
+            h('div',{style:{flex:1}}),
+            h('button',{onClick:()=>this.close(),style:{cursor:'pointer',border:'1px solid #E2DCEC',background:'#fff',color:'#6E6A86',fontFamily:'inherit',fontSize:14,fontWeight:600,padding:'12px 22px',borderRadius:12}},'取消'),
+            h('button',{onClick:()=>this.save(),style:{cursor:'pointer',border:'none',background:'linear-gradient(135deg,#6D54E8,#9A4FE0)',color:'#fff',fontFamily:'inherit',fontSize:14,fontWeight:700,padding:'12px 26px',borderRadius:12,boxShadow:'0 6px 16px rgba(109,84,232,.3)'}},'儲存')
+          )
+        )
+      );
+    }
+
+    return {
+      navTeacher: navItem('teacher','🎻','外聘老師'),
+      navStudent: navItem('student','🎒','學生資料'),
+      navRoom: navItem('room','🚪','琴房資料'),
+      headerTitle, toolbar, table, drawer,
+    };
+  }
+}
+</script>
+</body>
+</html>
